@@ -291,7 +291,7 @@ def front():
             reviews=reviews,
             user=user)
     else:
-        return redirect(url_for('/login'))
+        return redirect(url_for('login'))
 
 # The API:
 @app.route('/api/v1/products')
