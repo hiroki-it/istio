@@ -13,11 +13,11 @@ variable "PLATFORMS" {
 images = [
   // Productpage
   {
-    name   = "examples-bookinfo-productpage-v1"
+    name   = "examples-bookinfo-productpage-v2"
     source = "productpage"
   },
   {
-    name = "examples-bookinfo-productpage-v-flooding"
+    name = "examples-bookinfo-productpage-v2-flooding"
     args = {
       flood_factor = 100
     }
