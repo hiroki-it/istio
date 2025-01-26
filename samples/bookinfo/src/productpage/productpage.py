@@ -237,7 +237,7 @@ def health():
 def login():
     return OpenIDConnect.redirect_to_auth_server(None, None)
 
-@app.route('/callback')
+@app.route('/authentication/callback')
 def callback():
     response = OpenIDConnect.get_access_token()
     session['access_token'] = response['access_token']
