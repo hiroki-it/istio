@@ -1,3 +1,9 @@
+# 俺の方法
+
+```bash
+BOOKINFO_HUB=docker.io/hirokihasegawa BOOKINFO_TAG=1.20.2-authentication ./build-services.sh
+```
+
 # Bookinfo Sample
 
 See <https://istio.io/docs/examples/bookinfo/>.
