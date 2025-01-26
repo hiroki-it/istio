@@ -16,13 +16,6 @@ images = [
     name   = "examples-bookinfo-productpage-v2"
     source = "productpage"
   },
-  {
-    name = "examples-bookinfo-productpage-v2-flooding"
-    args = {
-      flood_factor = 100
-    }
-    source = "productpage"
-  },
 
 ]
 
