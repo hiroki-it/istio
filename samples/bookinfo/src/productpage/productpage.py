@@ -15,7 +15,7 @@
 #   limitations under the License.
 
 import time
-from flask import Flask, request, session, render_template, redirect,g
+from flask import Flask, request, session, render_template, redirect, g, url_for
 from json2html import json2html
 from opentelemetry import trace
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
