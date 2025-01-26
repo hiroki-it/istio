@@ -17,3 +17,4 @@ simplejson==3.19.2
 urllib3==2.2.2
 gunicorn==22.0.0
 gevent==24.2.1
+Flask-OIDC==2.2.2
