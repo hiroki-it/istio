@@ -15,7 +15,7 @@
 #   limitations under the License.
 
 import time
-from flask import Flask, request, session, render_template, redirect, g, url_for
+from flask import Flask, request, session, render_template, redirect, g
 from json2html import json2html
 from opentelemetry import trace
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
@@ -235,17 +235,21 @@ def health():
 @app.route('/login', methods=['POST'])
 @oidc.require_login
 def login():
-    user = request.values.get('username')
-    response = app.make_response(redirect(request.referrer))
-    session['user'] = user
-    return response
+    return OpenIDConnect.redirect_to_auth_server(None, None)
 
+@app.route('/callback')
+def callback():
+    response = OpenIDConnect.get_access_token()
+    session['access_token'] = response['access_token']
+    userinfoResponse = OpenIDConnect.user_getinfo()
+    userinfo = userinfoResponse.json()
+    session['user'] = userinfo['nickname']
+    return redirect('/productpage')
 
 @app.route('/logout', methods=['GET'])
 def logout():
-    response = app.make_response(redirect(request.referrer))
-    session.pop('user', None)
-    return response
+    OpenIDConnect.logout()
+    return redirect('/productpage')
 
 # a helper function for asyncio.gather, does not return a value
 
@@ -271,27 +275,24 @@ def floodReviews(product_id, headers):
 
 @app.route('/productpage')
 def front():
-    if oidc.user_loggedin:
-        product_id = 0  # TODO: replace default value
-        headers = getForwardHeaders(request)
-        user = session.get('user', '')
-        product = getProduct(product_id)
-        detailsStatus, details = getProductDetails(product_id, headers)
+    product_id = 0  # TODO: replace default value
+    headers = getForwardHeaders(request)
+    user = session.get('user', '')
+    product = getProduct(product_id)
+    detailsStatus, details = getProductDetails(product_id, headers)
 
-        if flood_factor > 0:
-            floodReviews(product_id, headers)
+    if flood_factor > 0:
+        floodReviews(product_id, headers)
 
-        reviewsStatus, reviews = getProductReviews(product_id, headers)
-        return render_template(
-            'productpage.html',
-            detailsStatus=detailsStatus,
-            reviewsStatus=reviewsStatus,
-            product=product,
-            details=details,
-            reviews=reviews,
-            user=user)
-    else:
-        return redirect(url_for('login'))
+    reviewsStatus, reviews = getProductReviews(product_id, headers)
+    return render_template(
+        'productpage.html',
+        detailsStatus=detailsStatus,
+        reviewsStatus=reviewsStatus,
+        product=product,
+        details=details,
+        reviews=reviews,
+        user=user)
 
 # The API:
 @app.route('/api/v1/products')
