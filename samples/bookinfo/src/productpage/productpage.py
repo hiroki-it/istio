@@ -45,7 +45,7 @@ oauth.register(
     name="keycloak",
     client_id="service",
     client_secret="ZQBzxI5CU36UiQmrWtDbJkY3VOX5LJRY",
-    server_metadata_url="http://localhost:8080/auth/realms/dev/.well-known/openid-configuration",
+    server_metadata_url="http://keycloak-http.app.svc.cluster.local:8080/auth/realms/dev/.well-known/openid-configuration",
     client_kwargs={"scope": "openid profile email"},
 )
 
