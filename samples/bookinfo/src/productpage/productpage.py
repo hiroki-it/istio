@@ -245,8 +245,9 @@ def auth():
 
 @app.route('/logout')
 def logout():
-    id_token = session.get('oidc_auth_token').get('id_token')
-    return redirect("https://localhost:8080/realms/dev/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s" % (id_token, urllib.parse.quote("http://localhost:9080/logout", safe='')))
+    session.pop("user", None)
+    logout_url = f"{os.getenv('http://localhost:8080/auth/realms/dev/protocol/openid-connect/logout')}?redirect_uri={url_for('productpage', _external=True)}"
+    return redirect(logout_url)
 
 # a helper function for asyncio.gather, does not return a value
 
