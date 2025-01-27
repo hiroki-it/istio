@@ -43,9 +43,9 @@ app = Flask(__name__)
 oauth = OAuth(app)
 oauth.register(
     name="keycloak",
-    client_id=os.getenv("service"),
-    client_secret=os.getenv("ZQBzxI5CU36UiQmrWtDbJkY3VOX5LJRY"),
-    server_metadata_url=os.getenv("http://localhost:8080/auth/realms/dev/.well-known/openid-configuration"),
+    client_id="service",
+    client_secret="ZQBzxI5CU36UiQmrWtDbJkY3VOX5LJRY",
+    server_metadata_url="http://localhost:8080/auth/realms/dev/.well-known/openid-configuration",
     client_kwargs={"scope": "openid profile email"},
 )
 
@@ -234,10 +234,10 @@ def health():
 
 @app.route('/login')
 def login():
-    redirect_uri = url_for("callback", _external=True)
+    redirect_uri = url_for("oidc_callback", _external=True)
     return oauth.keycloak.authorize_redirect(redirect_uri)
 
-@app.route("/callback")
+@app.route("/oidc_callback")
 def auth():
     token = oauth.keycloak.authorize_access_token()
     session["user"] = oauth.keycloak.parse_id_token(token)
@@ -246,7 +246,7 @@ def auth():
 @app.route('/logout')
 def logout():
     session.pop("user", None)
-    logout_url = f"{os.getenv('http://localhost:8080/auth/realms/dev/protocol/openid-connect/logout')}?redirect_uri={url_for('productpage', _external=True)}"
+    logout_url = f"{'http://localhost:8080/auth/realms/dev/protocol/openid-connect/logout'}?redirect_uri={url_for('productpage', _external=True)}"
     return redirect(logout_url)
 
 # a helper function for asyncio.gather, does not return a value
