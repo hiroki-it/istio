@@ -23,7 +23,7 @@ from opentelemetry.propagate import set_global_textmap
 from opentelemetry.propagators.b3 import B3MultiFormat
 from opentelemetry.sdk.trace import TracerProvider
 from prometheus_client import Counter, generate_latest
-from flask_oidc import OpenIDConnect
+from authlib.integrations.flask_client import OAuth
 
 import asyncio
 import logging
