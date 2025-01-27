@@ -238,14 +238,14 @@ def health():
 
 @app.route('/login')
 def login():
-    redirect_uri = url_for("oidc_callback", _external=True)
+    redirect_uri = url_for("auth", _external=True)
     return oauth.keycloak.authorize_redirect(redirect_uri)
 
-@app.route("/oidc_callback")
+@app.route("/auth")
 def auth():
     token = oauth.keycloak.authorize_access_token()
     session["user"] = oauth.keycloak.parse_id_token(token)
-    return redirect("/")
+    return redirect("/productpage")
 
 @app.route('/logout')
 def logout():
