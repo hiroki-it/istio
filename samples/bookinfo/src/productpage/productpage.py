@@ -43,7 +43,7 @@ app = Flask(__name__)
 
 app.config.update({
     'OIDC_CLIENT_SECRETS': 'client_secrets.json',
-    'OIDC_SCOPES': 'openid profile email offline_access'
+    'OIDC_SCOPES': 'openid profile'
 })
 
 oidc = OpenIDConnect(app)
