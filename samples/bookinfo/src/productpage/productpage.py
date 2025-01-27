@@ -31,6 +31,7 @@ import os
 import requests
 import simplejson as json
 import sys
+import urllib.parse
 
 
 # These two lines enable debugging at httplib level (requests->urllib3->http.client)
@@ -238,16 +239,10 @@ def health():
 @app.route('/login', methods=['POST'])
 @oidc.require_login
 def login():
-    return OpenIDConnect.redirect_to_auth_server(None, None)
-
-@app.route('/authentication/callback')
-def callback():
-    response = OpenIDConnect.get_access_token()
-    session['access_token'] = response['access_token']
-    userinfoResponse = OpenIDConnect.user_getinfo()
-    userinfo = userinfoResponse.json()
-    session['user'] = userinfo['nickname']
-    return redirect('/productpage')
+    info = oidc.user_getinfo('preferred_username')
+    session['user']  = info.get('preferred_username')
+    response = app.make_response(redirect(request.referrer))
+    return response
 
 @app.route('/logout', methods=['GET'])
 def logout():
