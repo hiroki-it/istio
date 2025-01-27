@@ -15,7 +15,7 @@
 #   limitations under the License.
 
 import time
-from flask import Flask, request, session, render_template, redirect, g
+from flask import Flask, request, session, render_template, redirect, g, url_for
 from json2html import json2html
 from opentelemetry import trace
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
@@ -31,8 +31,6 @@ import os
 import requests
 import simplejson as json
 import sys
-import urllib.parse
-
 
 # These two lines enable debugging at httplib level (requests->urllib3->http.client)
 # You will see the REQUEST, including HEADERS and DATA, and RESPONSE with HEADERS but without DATA.
@@ -42,18 +40,14 @@ http_client.HTTPConnection.debuglevel = 0
 
 app = Flask(__name__)
 
-app.config.update({
-    'DEBUG': True,
-    'SECRET_KEY': 'SomethingNotEntirelySecret',
-    'TESTING': True,
-    'OIDC_CLIENT_SECRETS': 'client_secrets.json',
-    'OIDC_ID_TOKEN_COOKIE_SECURE': False,
-    'OIDC_OPENID_REALM': 'dev',
-    'OIDC_SCOPES': ['openid', 'profile'],
-    'OIDC_INTROSPECTION_AUTH_METHOD': 'client_secret_post'
-})
-
-oidc = OpenIDConnect(app)
+oauth = OAuth(app)
+oauth.register(
+    name="keycloak",
+    client_id=os.getenv("service"),
+    client_secret=os.getenv("ZQBzxI5CU36UiQmrWtDbJkY3VOX5LJRY"),
+    server_metadata_url=os.getenv("http://localhost:8080/auth/realms/dev/.well-known/openid-configuration"),
+    client_kwargs={"scope": "openid profile email"},
+)
 
 FlaskInstrumentor().instrument_app(app)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -238,16 +232,18 @@ def index():
 def health():
     return 'Product page is healthy'
 
-
-@app.route('/login', methods=['POST'])
-@oidc.require_login
+@app.route('/login')
 def login():
-    info = oidc.user_getinfo('preferred_username')
-    session['user']  = info.get('preferred_username')
-    response = app.make_response(redirect(request.referrer))
-    return response
+    redirect_uri = url_for("callback", _external=True)
+    return oauth.keycloak.authorize_redirect(redirect_uri)
 
-@app.route('/logout', methods=['GET'])
+@app.route("/callback")
+def auth():
+    token = oauth.keycloak.authorize_access_token()
+    session["user"] = oauth.keycloak.parse_id_token(token)
+    return redirect("/")
+
+@app.route('/logout')
 def logout():
     id_token = session.get('oidc_auth_token').get('id_token')
     return redirect("https://localhost:8080/realms/dev/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s" % (id_token, urllib.parse.quote("http://localhost:9080/logout", safe='')))
