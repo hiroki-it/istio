@@ -42,8 +42,11 @@ http_client.HTTPConnection.debuglevel = 0
 app = Flask(__name__)
 
 app.config.update({
+    'SECRET_KEY': 'SomethingNotEntirelySecret',
     'OIDC_CLIENT_SECRETS': 'client_secrets.json',
-    'OIDC_SCOPES': 'openid profile'
+    'OIDC_ID_TOKEN_COOKIE_SECURE': False,
+    'OIDC_OPENID_REALM': 'dev',
+    'OIDC_SCOPES': ['openid', 'profile']
 })
 
 oidc = OpenIDConnect(app)
