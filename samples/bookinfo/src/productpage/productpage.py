@@ -240,11 +240,11 @@ def health():
 
 @app.route('/login')
 def login():
-    redirect_uri = url_for("auth", _external=True)
+    redirect_uri = url_for("callback", _external=True)
     return oauth.keycloak.authorize_redirect(redirect_uri)
 
 @app.route("/callback")
-def auth():
+def callback():
     # 認可レスポンスを取得する
     authorization_response = oauth.keycloak.authorize_access_token()
     session['access_token'] = authorization_response['access_token']
