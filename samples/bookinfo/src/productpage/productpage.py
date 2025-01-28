@@ -252,7 +252,7 @@ def auth():
 
 @app.route('/logout')
 def logout():
-    # 時間があればやる
+    # Keycloakからもログアウトしたいが、id_tokenが不正になってしまう。時間があればやる。
     # redirect_uri = ("%s/auth/realms/dev/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s" % (oauth.keycloak.api_base_url, session["id_token"], url_for("front", _external=True)))
     session.pop("id_token", None)
     session.pop("user", None)
