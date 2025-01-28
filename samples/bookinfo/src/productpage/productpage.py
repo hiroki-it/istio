@@ -46,7 +46,7 @@ oauth.register(
     client_id="service",
     client_secret="ZQBzxI5CU36UiQmrWtDbJkY3VOX5LJRY",
     client_kwargs={"scope": "openid profile email"},
-    api_base_url="http://localhost:8080/",
+    api_base_url="http://localhost:8080",
     authorize_url="http://localhost:8080/auth/realms/dev/protocol/openid-connect/auth",
     access_token_url="http://keycloak-http.app.svc.cluster.local:8080/auth/realms/dev/protocol/openid-connect/token",
     jwks_uri="http://keycloak-http.app.svc.cluster.local:8080/auth/realms/dev/protocol/openid-connect/certs"
@@ -244,6 +244,7 @@ def login():
 def auth():
     token = oauth.keycloak.authorize_access_token()
     id_token = oauth.keycloak.parse_id_token(token, None)
+    session["id_token"] = id_token
     session["user"] = id_token["given_name"]
     redirect_uri = url_for('front', _external=True)
     return redirect(redirect_uri)
@@ -251,7 +252,7 @@ def auth():
 @app.route('/logout')
 def logout():
     session.pop("user", None)
-    redirect_uri = url_for("front", _external=True)
+    redirect_uri = ("%s/auth/realms/dev/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s" % (oauth.keycloak.api_base_url, session.get("id_token"), url_for("front", _external=True)))
     return redirect(redirect_uri)
 
 # a helper function for asyncio.gather, does not return a value
