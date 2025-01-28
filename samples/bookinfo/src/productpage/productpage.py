@@ -243,8 +243,10 @@ def login():
 @app.route("/auth")
 def auth():
     token = oauth.keycloak.authorize_access_token()
-    session["user"] = oauth.keycloak.parse_id_token(token)
-    return redirect("/productpage")
+    id_token = oauth.keycloak.parse_id_token(token, None)
+    session["user"] = id_token["given_name"]
+    redirect_uri = url_for('front')
+    return redirect(redirect_uri)
 
 @app.route('/logout')
 def logout():
