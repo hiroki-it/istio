@@ -47,9 +47,9 @@ oauth.register(
     client_secret="ZQBzxI5CU36UiQmrWtDbJkY3VOX5LJRY",
     client_kwargs={"scope": "openid profile email"},
     api_base_url="http://localhost:8080",
-    authorize_url="http://localhost:8080/auth/realms/dev/protocol/openid-connect/auth",
-    access_token_url="http://keycloak-http.app.svc.cluster.local:8080/auth/realms/dev/protocol/openid-connect/token",
-    jwks_uri="http://keycloak-http.app.svc.cluster.local:8080/auth/realms/dev/protocol/openid-connect/certs"
+    authorize_url="http://localhost:8080/realms/dev/protocol/openid-connect/auth",
+    access_token_url="http://keycloak-http.app.svc.cluster.local:8080/realms/dev/protocol/openid-connect/token",
+    jwks_uri="http://keycloak-http.app.svc.cluster.local:8080/realms/dev/protocol/openid-connect/certs"
 )
 
 FlaskInstrumentor().instrument_app(app)
@@ -243,7 +243,7 @@ def login():
     redirect_uri = url_for("auth", _external=True)
     return oauth.keycloak.authorize_redirect(redirect_uri)
 
-@app.route("/auth")
+@app.route("/callback")
 def auth():
     # 認可レスポンスを取得する
     authorization_response = oauth.keycloak.authorize_access_token()
@@ -258,7 +258,7 @@ def auth():
 @app.route('/logout')
 def logout():
     # Keycloakからログアウトする
-    redirect_uri = ("%s/auth/realms/dev/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s" % (oauth.keycloak.api_base_url, session.get('id_token', ''), url_for("front", _external=True)))
+    redirect_uri = ("%s/realms/dev/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s" % (oauth.keycloak.api_base_url, session.get('id_token', ''), url_for("front", _external=True)))
     session.pop('access_token', None)
     session.pop('id_token', None)
     session.pop('user', None)
