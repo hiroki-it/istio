@@ -245,11 +245,12 @@ def login():
 
 @app.route("/auth")
 def auth():
-    access_token = oauth.keycloak.authorize_access_token()
-    # IDトークンを取得する
-    id_token = oauth.keycloak.parse_id_token(access_token, None)
-    session["id_token"] = id_token
-    session["user"] = id_token["given_name"]
+    # 認可レスポンスを取得する
+    authorization_response = oauth.keycloak.authorize_access_token()
+    session['access_token'] = authorization_response['access_token']
+    # デコードしたIDトークンを認可レスポンスから取得する
+    id_token = oauth.keycloak.parse_id_token(authorization_response, None)
+    session['user'] = id_token['given_name']
     redirect_uri = url_for('front', _external=True)
     return redirect(redirect_uri)
 
