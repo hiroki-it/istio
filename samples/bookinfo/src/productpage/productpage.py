@@ -251,8 +251,8 @@ def auth():
 @app.route('/logout')
 def logout():
     session.pop("user", None)
-    logout_url = f"{'http://localhost:8080/auth/realms/dev/protocol/openid-connect/logout'}?redirect_uri={url_for('productpage', _external=True)}"
-    return redirect(logout_url)
+    redirect_uri = url_for("front", _external=True)
+    return redirect(redirect_uri)
 
 # a helper function for asyncio.gather, does not return a value
 
