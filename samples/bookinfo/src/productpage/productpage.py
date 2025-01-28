@@ -242,8 +242,11 @@ def login():
 
 @app.route("/auth")
 def auth():
-    token = oauth.keycloak.authorize_access_token()
-    id_token = oauth.keycloak.parse_id_token(token, None)
+    access_token = oauth.keycloak.authorize_access_token()
+    # アクセストークンをヘッダーで伝播する
+    request.headers['authorization'] = "Bearer " + access_token['access_token']
+    # IDトークンを取得する
+    id_token = oauth.keycloak.parse_id_token(access_token, None)
     session["id_token"] = id_token
     session["user"] = id_token["given_name"]
     redirect_uri = url_for('front', _external=True)
