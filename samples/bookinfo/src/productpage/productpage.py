@@ -245,7 +245,7 @@ def auth():
     token = oauth.keycloak.authorize_access_token()
     id_token = oauth.keycloak.parse_id_token(token, None)
     session["user"] = id_token["given_name"]
-    redirect_uri = url_for('front')
+    redirect_uri = url_for('front', _external=True)
     return redirect(redirect_uri)
 
 @app.route('/logout')
