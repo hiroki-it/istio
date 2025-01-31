@@ -47,8 +47,8 @@ oauth.register(
     client_secret="ZQBzxI5CU36UiQmrWtDbJkY3VOX5LJRY",
     client_kwargs={"scope": "openid profile email"},
     authorize_url="http://localhost:8080/realms/dev/protocol/openid-connect/auth",
-    access_token_url="http://keycloak-http.app.svc.cluster.local:8080/realms/dev/protocol/openid-connect/token",
-    jwks_uri="http://keycloak-http.app.svc.cluster.local:8080/realms/dev/protocol/openid-connect/certs"
+    access_token_url="http://keycloak-http.keycloak.svc.cluster.local:8080/realms/dev/protocol/openid-connect/token",
+    jwks_uri="http://keycloak-http.keycloak.svc.cluster.local:8080/realms/dev/protocol/openid-connect/certs"
 )
 
 FlaskInstrumentor().instrument_app(app)
