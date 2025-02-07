@@ -375,6 +375,8 @@ def getProductDetails(product_id, headers):
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='details', response_code=status).inc()
+        if status == 403:
+            return status, {'error': 'Please sign in to view product details.'}
         return status, {'error': 'Sorry, product details are currently unavailable for this book.'}
 
 
@@ -392,6 +394,8 @@ def getProductReviews(product_id, headers):
             return 200, res.json()
     status = res.status_code if res is not None and res.status_code else 500
     request_result_counter.labels(destination_app='reviews', response_code=status).inc()
+    if status == 403:
+        return status, {'error': 'Please sign in to view product reviews.'}
     return status, {'error': 'Sorry, product reviews are currently unavailable for this book.'}
 
 
@@ -407,6 +411,8 @@ def getProductRatings(product_id, headers):
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='ratings', response_code=status).inc()
+        if status == 403:
+            return status, {'error': 'Please sign in to view product ratings.'}
         return status, {'error': 'Sorry, product ratings are currently unavailable for this book.'}
 
 
