@@ -297,6 +297,12 @@ def front():
         floodReviews(product_id, headers)
 
     reviewsStatus, reviews = getProductReviews(product_id, headers)
+
+    # いずれかのマイクロサービスでアクセストークンの検証が失敗し、401ステータスが返信された場合、ログアウトする
+    if detailsStatus == 401 or reviewsStatus == 401:
+        redirect_uri = url_for('logout', _external=True)
+        return redirect(redirect_uri)
+
     return render_template(
         'productpage.html',
         detailsStatus=detailsStatus,
