@@ -105,9 +105,9 @@
             </div>
           </div>
           {% else %}
-          <p class="text-2xl text-red-500"><strong>{{ detailsStatus }}</strong>: Error fetching product details</p>
+          <p class="text-2xl text-red-500">Error fetching product details</p>
           {% if details: %}
-          <p class="text-lg text-gray-600">{{ details.error }}</p>
+          <p class="text-lg text-gray-600"><strong>{{ detailsStatus }}</strong>: {{ details.error }}</p>
           {% endif %}
           {% endif %}
         </div>
