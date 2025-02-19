@@ -145,9 +145,6 @@ def getForwardHeaders(request):
     # We handle other (non x-b3-***) headers manually
     if 'user' in session:
         headers['end-user'] = session['user']
-        # Authorizationヘッダーにアクセストークンを設定する
-        access_token = session.get('access_token', '')
-        headers['authorization'] = 'Bearer ' + access_token
 
     # Keep this in sync with the headers in details and reviews.
     incoming_headers = [
@@ -246,13 +243,14 @@ def login():
 def callback():
     # 認可レスポンスを取得する
     authorization_response = oauth.keycloak.authorize_access_token()
-    session['access_token'] = authorization_response['access_token']
     session['id_token'] = authorization_response['id_token']
     # デコードしたIDトークンを認可レスポンスから取得する
     id_token = oauth.keycloak.parse_id_token(authorization_response, None)
     session['user'] = id_token['given_name']
-    redirect_uri = url_for('front', _external=True)
-    return redirect(redirect_uri)
+    response = app.make_response(redirect(url_for('front', _external=True)))
+    # Cookieにアクセストークンを設定する
+    response.set_cookie('access_token', authorization_response['access_token'])
+    return response
 
 @app.route('/logout')
 def logout():
