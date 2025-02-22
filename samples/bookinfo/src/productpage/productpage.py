@@ -259,7 +259,7 @@ def logout():
     session.pop('id_token', None)
     session.pop('user', None)
     response = app.make_response(redirect(redirect_uri))
-    # Cookieにアクセストークンを設定する
+    # Cookieにアクセストークンを削除する
     response.delete_cookie('access_token')
     return response
 
