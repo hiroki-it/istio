@@ -256,10 +256,12 @@ def callback():
 def logout():
     # Keycloakからログアウトし、productpageにリダイレクトする
     redirect_uri = ("http://localhost:8080/realms/dev/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s" % (session.get('id_token', ''), url_for("front", _external=True)))
-    session.pop('access_token', None)
     session.pop('id_token', None)
     session.pop('user', None)
-    return redirect(redirect_uri)
+    response = app.make_response(redirect(redirect_uri))
+    # Cookieにアクセストークンを設定する
+    response.delete_cookie('access_token')
+    return response
 
 # a helper function for asyncio.gather, does not return a value
 
