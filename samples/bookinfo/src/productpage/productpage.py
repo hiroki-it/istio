@@ -244,7 +244,7 @@ def callback():
     # 各種トークンを取得する
     token = oauth.keycloak.authorize_access_token()
     session['id_token'] = token['id_token']
-    # デコードしたIDトークンを認可レスポンスから取得する
+    # デコードしたIDトークンを取得する
     id_token = oauth.keycloak.parse_id_token(token, None)
     session['user'] = id_token['given_name']
     response = app.make_response(redirect(url_for('front', _external=True)))
