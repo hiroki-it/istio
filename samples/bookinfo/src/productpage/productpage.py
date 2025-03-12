@@ -241,15 +241,15 @@ def login():
 
 @app.route("/callback")
 def callback():
-    # 認可レスポンスを取得する
-    authorization_response = oauth.keycloak.authorize_access_token()
-    session['id_token'] = authorization_response['id_token']
+    # 各種トークンを取得する
+    token = oauth.keycloak.authorize_access_token()
+    session['id_token'] = token['id_token']
     # デコードしたIDトークンを認可レスポンスから取得する
-    id_token = oauth.keycloak.parse_id_token(authorization_response, None)
+    id_token = oauth.keycloak.parse_id_token(token, None)
     session['user'] = id_token['given_name']
     response = app.make_response(redirect(url_for('front', _external=True)))
     # Cookieにアクセストークンを設定する
-    response.set_cookie('access_token', authorization_response['access_token'])
+    response.set_cookie('access_token', token['access_token'])
     return response
 
 @app.route('/logout')
