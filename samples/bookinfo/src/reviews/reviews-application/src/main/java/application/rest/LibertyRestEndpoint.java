@@ -165,6 +165,13 @@ public class LibertyRestEndpoint extends Application {
                JsonReader jsonReader = Json.createReader(stringReader)) {
             return jsonReader.readObject();
           }
+
+          // ステータスコードとx-envoy-overloadedヘッダーから、サーキットブレイカーが開いているかどうかを判定する
+        } else if (statusCode == 503 && r.getStatusInfo().getHeaderString("x-envoy-overloaded") == true) {
+            System.out.println("Info: open circuit breaker" + ratings_service + " got status of " + statusCode);
+            // フォールバック処理として、レーティングを無効にする
+            ratings_enabled = false
+            return null;
         } else {
           System.out.println("Error: unable to contact " + ratings_service + " got status of " + statusCode);
           return null;
