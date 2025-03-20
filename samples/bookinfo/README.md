@@ -1,9 +1,3 @@
-# 俺の方法
-
-```bash
-BOOKINFO_HUB=docker.io/hirokihasegawa BOOKINFO_TAG=1.20.3 ./build-services.sh
-```
-
 # Bookinfo Sample
 
 See <https://istio.io/docs/examples/bookinfo/>.
