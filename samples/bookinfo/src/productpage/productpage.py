@@ -284,7 +284,7 @@ def floodReviews(product_id, headers):
     loop.run_until_complete(floodReviewsAsynchronously(product_id, headers))
     loop.close()
 
-
+# フロントエンドアプリとして
 @app.route('/productpage')
 def front():
     product_id = 0  # TODO: replace default value
@@ -312,7 +312,7 @@ def front():
         reviews=reviews,
         user=user)
 
-# The API:
+# API Gatewayとして
 @app.route('/api/v1/products')
 def productsRoute():
     return json.dumps(getProducts()), 200, {'Content-Type': 'application/json'}
