@@ -291,11 +291,14 @@ def front():
     headers = getForwardHeaders(request)
     user = session.get('user', '')
     product = getProduct(product_id)
+
+    # detailsサービスにリクエストを送信する
     detailsStatus, details = getProductDetails(product_id, headers)
 
     if flood_factor > 0:
         floodReviews(product_id, headers)
 
+    # reviewsサービスにリクエストを送信する
     reviewsStatus, reviews = getProductReviews(product_id, headers)
 
     # いずれかのマイクロサービスでアクセストークンの検証が失敗し、401ステータスが返信された場合、ログアウトする
