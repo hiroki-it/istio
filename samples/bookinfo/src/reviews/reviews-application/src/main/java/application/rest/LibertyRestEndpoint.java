@@ -36,7 +36,7 @@ import java.io.StringReader;
 @Path("/")
 public class LibertyRestEndpoint extends Application {
 
-    private final static Boolean ratings_enabled = Boolean.valueOf(System.getenv("ENABLE_RATINGS"));
+    private static Boolean ratings_enabled = Boolean.valueOf(System.getenv("ENABLE_RATINGS"));
     private final static String star_color = System.getenv("STAR_COLOR") == null ? "black" : System.getenv("STAR_COLOR");
     private final static String services_domain = System.getenv("SERVICES_DOMAIN") == null ? "" : ("." + System.getenv("SERVICES_DOMAIN"));
     private final static String ratings_hostname = System.getenv("RATINGS_HOSTNAME") == null ? "ratings" : System.getenv("RATINGS_HOSTNAME");
@@ -158,19 +158,20 @@ public class LibertyRestEndpoint extends Application {
       }
       try {
         Response r = builder.get();
-
         int statusCode = r.getStatusInfo().getStatusCode();
+        // サーキットブレイカーの状態を表すヘッダーをレスポンスから取得する
+        // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
+        String isCircuitBreakerOpen r.getHeaderString("x-envoy-overloaded");
         if (statusCode == Response.Status.OK.getStatusCode()) {
           try (StringReader stringReader = new StringReader(r.readEntity(String.class));
                JsonReader jsonReader = Json.createReader(stringReader)) {
             return jsonReader.readObject();
           }
-
-          // ステータスコードとx-envoy-overloadedヘッダーから、サーキットブレイカーが開いているかどうかを判定する
-        } else if (statusCode == 503 && r.getStatusInfo().getHeaderString("x-envoy-overloaded") == true) {
+          // x-envoy-overloadedヘッダーから、サーキットブレイカーが開いているかどうかを判定する
+        } else if ("true".equals(isCircuitBreakerOpen)) {
             System.out.println("Info: open circuit breaker" + ratings_service + " got status of " + statusCode);
             // フォールバック処理として、レーティングを無効にする
-            ratings_enabled = false
+            ratings_enabled = false;
             return null;
         } else {
           System.out.println("Error: unable to contact " + ratings_service + " got status of " + statusCode);
