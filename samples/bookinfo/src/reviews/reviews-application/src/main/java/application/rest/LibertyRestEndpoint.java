@@ -15,6 +15,10 @@
  *******************************************************************************/
 package application.rest;
 
+import java.io.StringReader;
+import java.util.List;
+import java.util.Map;
+
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
@@ -31,7 +35,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.StringReader;
 
 @Path("/")
 public class LibertyRestEndpoint extends Application {
@@ -159,6 +162,11 @@ public class LibertyRestEndpoint extends Application {
       try {
         Response r = builder.get();
         int statusCode = r.getStatusInfo().getStatusCode();
+        //レスポンスヘッダーのダンプ
+        System.out.println("Response Headers:");
+        for (Map.Entry<String, List<Object>> entry : r.getHeaders().entrySet()) {
+          System.out.println(entry.getKey() + ": " + entry.getValue());
+        }
         // サーキットブレイカーの状態を表すヘッダーをレスポンスから取得する
         // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
         String isCircuitBreakerOpen = r.getHeaderString("x-envoy-overloaded");
@@ -169,7 +177,7 @@ public class LibertyRestEndpoint extends Application {
           }
           // x-envoy-overloadedヘッダーから、サーキットブレイカーが開いているかどうかを判定する
         } else if ("true".equals(isCircuitBreakerOpen)) {
-            System.out.println("Info: open circuit breaker" + ratings_service + " got status of " + statusCode);
+            System.out.println("Info: open circuit breaker " + ratings_service + " got status of " + statusCode);
             // フォールバック処理として、レーティングを無効にする
             ratings_enabled = false;
             return null;
