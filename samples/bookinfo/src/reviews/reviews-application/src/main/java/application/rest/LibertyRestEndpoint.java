@@ -161,7 +161,7 @@ public class LibertyRestEndpoint extends Application {
         int statusCode = r.getStatusInfo().getStatusCode();
         // サーキットブレイカーの状態を表すヘッダーをレスポンスから取得する
         // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
-        String isCircuitBreakerOpen r.getHeaderString("x-envoy-overloaded");
+        String isCircuitBreakerOpen = r.getHeaderString("x-envoy-overloaded");
         if (statusCode == Response.Status.OK.getStatusCode()) {
           try (StringReader stringReader = new StringReader(r.readEntity(String.class));
                JsonReader jsonReader = Json.createReader(stringReader)) {
