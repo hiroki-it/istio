@@ -107,88 +107,27 @@ public class LibertyRestEndpoint extends Application {
     private String getJsonResponse(String productId, int starsReviewer1, int starsReviewer2) {
     	String result = "{";
     	result += "\"id\": \"" + productId + "\",";
-        result += "\"podname\": \"" + pod_hostname + "\",";
-        result += "\"clustername\": \"" + clustername + "\",";
+      result += "\"podname\": \"" + pod_hostname + "\",";
+      result += "\"clustername\": \"" + clustername + "\",";
     	result += "\"reviews\": [";
 
     	// reviewer 1:
     	result += "{";
     	result += "  \"reviewer\": \"Reviewer1\",";
     	result += "  \"text\": \"An extremely entertaining play by Shakespeare. The slapstick humour is refreshing!\"";
-      if (ratings_enabled) {
-        if (starsReviewer1 != -1) {
-          result += ", \"rating\": {\"stars\": " + starsReviewer1 + ", \"color\": \"" + star_color + "\"}";
-        }
-        else {
-          result += ", \"rating\": {\"error\": \"Ratings service is currently unavailable\"}";
-        }
-      }
+      result += ", \"rating\": {\"stars\": " + starsReviewer1 + ", \"color\": \"" + star_color + "\"}";
     	result += "},";
 
     	// reviewer 2:
     	result += "{";
     	result += "  \"reviewer\": \"Reviewer2\",";
     	result += "  \"text\": \"Absolutely fun and entertaining. The play lacks thematic depth when compared to other plays by Shakespeare.\"";
-      if (ratings_enabled) {
-        if (starsReviewer2 != -1) {
-          result += ", \"rating\": {\"stars\": " + starsReviewer2 + ", \"color\": \"" + star_color + "\"}";
-        }
-        else {
-          result += ", \"rating\": {\"error\": \"Ratings service is currently unavailable\"}";
-        }
-      }
+      result += ", \"rating\": {\"stars\": " + starsReviewer2 + ", \"color\": \"" + star_color + "\"}";
     	result += "}";
-
     	result += "]";
     	result += "}";
 
     	return result;
-    }
-
-    private JsonObject getRatings(String productId, HttpHeaders requestHeaders) {
-      ClientBuilder cb = ClientBuilder.newBuilder();
-      Integer timeout = star_color.equals("black") ? 10000 : 2500;
-      cb.property("com.ibm.ws.jaxrs.client.connection.timeout", timeout);
-      cb.property("com.ibm.ws.jaxrs.client.receive.timeout", timeout);
-      Client client = cb.build();
-      WebTarget ratingsTarget = client.target(ratings_service + "/" + productId);
-      Invocation.Builder builder = ratingsTarget.request(MediaType.APPLICATION_JSON);
-      for (String header : headers_to_propagate) {
-        String value = requestHeaders.getHeaderString(header);
-        if (value != null) {
-          builder.header(header,value);
-        }
-      }
-      try {
-        Response r = builder.get();
-        int statusCode = r.getStatusInfo().getStatusCode();
-        //レスポンスヘッダーのダンプ
-        System.out.println("Response Headers:");
-        for (Map.Entry<String, List<Object>> entry : r.getHeaders().entrySet()) {
-          System.out.println(entry.getKey() + ": " + entry.getValue());
-        }
-        // サーキットブレイカーの状態を表すヘッダーをレスポンスから取得する
-        // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
-        String isCircuitBreakerOpen = r.getHeaderString("x-envoy-overloaded");
-        if (statusCode == Response.Status.OK.getStatusCode()) {
-          try (StringReader stringReader = new StringReader(r.readEntity(String.class));
-               JsonReader jsonReader = Json.createReader(stringReader)) {
-            return jsonReader.readObject();
-          }
-          // x-envoy-overloadedヘッダーから、サーキットブレイカーが開いているかどうかを判定する
-        } else if ("true".equals(isCircuitBreakerOpen)) {
-            System.out.println("Error: unable to contact " + ratings_service + "by opening circuit breaker, got status of " + statusCode);
-            // フォールバック処理として、レーティングを無効にする
-            ratings_enabled = false;
-            return null;
-        } else {
-          System.out.println("Error: unable to contact " + ratings_service + ", got status of " + statusCode);
-          return null;
-        }
-      } catch (ProcessingException e) {
-        System.err.println("Error: unable to contact " + ratings_service + ", got exception " + e);
-        return null;
-      }
     }
 
     @GET
@@ -200,25 +139,78 @@ public class LibertyRestEndpoint extends Application {
     @GET
     @Path("/reviews/{productId}")
     public Response bookReviewsById(@PathParam("productId") int productId, @Context HttpHeaders requestHeaders) {
-      int starsReviewer1 = -1;
-      int starsReviewer2 = -1;
+        int starsReviewer1 = -1;
+        int starsReviewer2 = -1;
 
-      if (ratings_enabled) {
-        JsonObject ratingsResponse = getRatings(Integer.toString(productId), requestHeaders);
-        if (ratingsResponse != null) {
-          if (ratingsResponse.containsKey("ratings")) {
-            JsonObject ratings = ratingsResponse.getJsonObject("ratings");
-            if (ratings.containsKey("Reviewer1")){
-          	  starsReviewer1 = ratings.getInt("Reviewer1");
+        if (ratings_enabled) {
+            ClientBuilder cb = ClientBuilder.newBuilder();
+            Integer timeout = star_color.equals("black") ? 10000 : 2500;
+            cb.property("com.ibm.ws.jaxrs.client.connection.timeout", timeout);
+            cb.property("com.ibm.ws.jaxrs.client.receive.timeout", timeout);
+            Client client = cb.build();
+            WebTarget ratingsTarget = client.target(ratings_service + "/" + productId);
+            Invocation.Builder builder = ratingsTarget.request(MediaType.APPLICATION_JSON);
+            for (String header : headers_to_propagate) {
+                String value = requestHeaders.getHeaderString(header);
+                if (value != null) {
+                    builder.header(header, value);
+                }
             }
-            if (ratings.containsKey("Reviewer2")){
-              starsReviewer2 = ratings.getInt("Reviewer2");
+                        
+            try {
+                Response r = builder.get();
+
+                int statusCode = r.getStatusInfo().getStatusCode();
+
+                // サーキットブレイカーの状態を表すヘッダーをレスポンスから取得する
+                // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
+                String isCircuitBreakerOpen = r.getHeaderString("x-envoy-overloaded");
+
+                //レスポンスヘッダーのダンプ
+                System.out.println("Response Headers:");
+
+                for (Map.Entry<String, List<Object>> entry : r.getHeaders().entrySet()) {
+                    System.out.println(entry.getKey() + ": " + entry.getValue());
+                }
+
+                if (statusCode == Response.Status.OK.getStatusCode()) {
+                    try (StringReader stringReader = new StringReader(r.readEntity(String.class));
+                        JsonReader jsonReader = Json.createReader(stringReader)) {
+                        JsonObject ratingsResponse = jsonReader.readObject();
+                        if (ratingsResponse != null) {
+                            if (ratingsResponse.containsKey("ratings")) {
+                                JsonObject ratings = ratingsResponse.getJsonObject("ratings");
+                                if (ratings.containsKey("Reviewer1")) {
+                                    starsReviewer1 = ratings.getInt("Reviewer1");
+                                }
+                                if (ratings.containsKey("Reviewer2")) {
+                                    starsReviewer2 = ratings.getInt("Reviewer2");
+                                }
+                            }
+                        }
+                        String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2);
+                        return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
+                    }
+                    // x-envoy-overloadedヘッダーがtrueの場合、Envoyがコネクションプールを条件としたサーキットブレイカーを開いたと判断する
+                } else if ("true".equals(isCircuitBreakerOpen) 
+                // 503ステータスコードの場合、Envoyがステータスコードを条件としたサーキットブレイカーが開いたか、またはサーキットブレイカーは開いていないが宛先が処理不可能な状態にあると判断する
+                || statusCode == Response.Status.SERVICE_UNAVAILABLE.getStatusCode()) {
+                    System.out.println("Error: "+  statusCode + ", unable to contact " + ratings_service + " by opening circuit breaker");
+                    // フォールバック処理として、レーティングを無効にする
+                    ratings_enabled = false;
+                    String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2);
+                    return Response.status(Response.Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
+                } else {
+                    System.out.println("Error: "+  statusCode + ", unable to contact " + ratings_service);
+                    return Response.status(statusCode).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"Error: "+  statusCode + ", unable to contact " + ratings_service + "\"}").build();
+                }
+            } catch (ProcessingException e) {
+                System.err.println("Error: unable to contact " + ratings_service + ", got exception " + e);
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"Internal server error\"}").build();
             }
-          }
         }
-      }
 
-      String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2);
-      return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
+        String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2);
+        return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
     }
 }
