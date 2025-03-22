@@ -375,11 +375,12 @@ def getProductDetails(product_id, headers):
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='details', response_code=200).inc()
         return 200, res.json()
+    elif res and res.status_code == 403:
+        request_result_counter.labels(destination_app='details', response_code=403).inc()
+        return 403, {'error': 'Please sign in to view product details.'}
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='details', response_code=status).inc()
-        if status == 403:
-            return status, {'error': 'Please sign in to view product details.'}
         return status, {'error': 'Sorry, product details are currently unavailable for this book.'}
 
 
@@ -392,14 +393,20 @@ def getProductReviews(product_id, headers):
             res = send_request(url, headers=headers, timeout=3.0)
         except BaseException:
             res = None
-        if res and res.status_code == 200:
-            request_result_counter.labels(destination_app='reviews', response_code=200).inc()
-            return 200, res.json()
-    status = res.status_code if res is not None and res.status_code else 500
-    request_result_counter.labels(destination_app='reviews', response_code=status).inc()
-    if status == 403:
-        return status, {'error': 'Please sign in to view product reviews.'}
-    return status, {'error': 'Sorry, product reviews are currently unavailable for this book.'}
+    if res and res.status_code == 200:
+        request_result_counter.labels(destination_app='reviews', response_code=200).inc()
+        return 200, res.json()
+    elif res and res.status_code == 403:
+        request_result_counter.labels(destination_app='reviews', response_code=403).inc()
+        return 403, {'error': 'Please sign in to view product reviews.'}
+    # サーキットブレイカーによりreviewsサービスが503ステータスコードを返信した場合、200ステータスコードを返信する
+    elif res and res.status_code == 503:
+        request_result_counter.labels(destination_app='reviews', response_code=503).inc()
+        return 200, res.json()
+    else:
+        status = res.status_code if res is not None and res.status_code else 500
+        request_result_counter.labels(destination_app='reviews', response_code=status).inc()
+        return status, {'error': 'Sorry, product reviews are currently unavailable for this book.'}
 
 
 def getProductRatings(product_id, headers):
@@ -411,11 +418,12 @@ def getProductRatings(product_id, headers):
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='ratings', response_code=200).inc()
         return 200, res.json()
+    elif res and res.status_code == 403:
+        request_result_counter.labels(destination_app='ratings', response_code=403).inc()
+        return 403, {'error': 'Please sign in to view product ratings.'}
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='ratings', response_code=status).inc()
-        if status == 403:
-            return status, {'error': 'Please sign in to view product ratings.'}
         return status, {'error': 'Sorry, product ratings are currently unavailable for this book.'}
 
 

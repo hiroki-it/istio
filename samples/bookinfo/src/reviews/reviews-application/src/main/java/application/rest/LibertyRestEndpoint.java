@@ -195,13 +195,16 @@ public class LibertyRestEndpoint extends Application {
                 } else if ("true".equals(isCircuitBreakerOpen) 
                 // 503ステータスコードの場合、Envoyがステータスコードを条件としたサーキットブレイカーが開いたか、またはサーキットブレイカーは開いていないが宛先が処理不可能な状態にあると判断する
                 || statusCode == Response.Status.SERVICE_UNAVAILABLE.getStatusCode()) {
-                    System.out.println("Error: "+  statusCode + ", unable to contact " + ratings_service + " by opening circuit breaker");
+                    System.err.println("Error: "+  statusCode + ", unable to contact " + ratings_service + " by opening circuit breaker");
                     // フォールバック処理として、レーティングを無効にする
                     ratings_enabled = false;
                     String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2);
-                    return Response.status(Response.Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
+                    ratings_enabled = !ratings_enabled;
+                    Response response = Response.status(Response.Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
+                    System.err.println(response);
+                    return response;
                 } else {
-                    System.out.println("Error: "+  statusCode + ", unable to contact " + ratings_service);
+                    System.err.println("Error: "+  statusCode + ", unable to contact " + ratings_service);
                     return Response.status(statusCode).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"Error: "+  statusCode + ", unable to contact " + ratings_service + "\"}").build();
                 }
             } catch (ProcessingException e) {
