@@ -177,16 +177,16 @@ public class LibertyRestEndpoint extends Application {
           }
           // x-envoy-overloadedヘッダーから、サーキットブレイカーが開いているかどうかを判定する
         } else if ("true".equals(isCircuitBreakerOpen)) {
-            System.out.println("Info: open circuit breaker " + ratings_service + " got status of " + statusCode);
+            System.out.println("Error: unable to contact " + ratings_service + "by opening circuit breaker, got status of " + statusCode);
             // フォールバック処理として、レーティングを無効にする
             ratings_enabled = false;
             return null;
         } else {
-          System.out.println("Error: unable to contact " + ratings_service + " got status of " + statusCode);
+          System.out.println("Error: unable to contact " + ratings_service + ", got status of " + statusCode);
           return null;
         }
       } catch (ProcessingException e) {
-        System.err.println("Error: unable to contact " + ratings_service + " got exception " + e);
+        System.err.println("Error: unable to contact " + ratings_service + ", got exception " + e);
         return null;
       }
     }
