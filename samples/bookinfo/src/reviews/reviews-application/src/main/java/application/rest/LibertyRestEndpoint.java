@@ -225,7 +225,7 @@ public class LibertyRestEndpoint extends Application {
                 }
             } catch (ProcessingException e) {
                 System.err.println("ERROR: " + e.getMessage());
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"product reviews are currently unavailable for this book.\"}").build();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"Product reviews are currently unavailable for this book.\"}").build();
             }
         }
 
