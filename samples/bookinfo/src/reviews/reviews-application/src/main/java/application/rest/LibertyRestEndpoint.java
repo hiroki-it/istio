@@ -104,7 +104,7 @@ public class LibertyRestEndpoint extends Application {
         "jwt",
     };
 
-    private String getJsonResponse(String productId, int starsReviewer1, int starsReviewer2) {
+    private String getJsonResponse(String productId, int starsReviewer1, int starsReviewer2, int statusCode) {
     	String result = "{";
     	result += "\"id\": \"" + productId + "\",";
       result += "\"podname\": \"" + pod_hostname + "\",";
@@ -116,7 +116,15 @@ public class LibertyRestEndpoint extends Application {
     	result += "  \"reviewer\": \"Reviewer1\",";
     	result += "  \"text\": \"An extremely entertaining play by Shakespeare. The slapstick humour is refreshing!\"";
       if (ratings_enabled) {
-        result += ", \"rating\": {\"stars\": " + starsReviewer1 + ", \"color\": \"" + star_color + "\"}";
+        if (starsReviewer1 != -1) {
+          result += ", \"rating\": {\"stars\": " + starsReviewer1 + ", \"color\": \"" + star_color + "\"}";
+        }
+        else if (statusCode == 503) {
+          result += ", \"rating\": {\"error\": \"["+  statusCode + "] Unable to contact " + ratings_service + " by opening circuit breaker\"}";
+        }
+        else {
+          result += ", \"rating\": {\"error\": \"["+  statusCode + "] Unable to contact " + ratings_service + "\"}";
+        }
       }
     	result += "},";
 
@@ -125,7 +133,15 @@ public class LibertyRestEndpoint extends Application {
     	result += "  \"reviewer\": \"Reviewer2\",";
     	result += "  \"text\": \"Absolutely fun and entertaining. The play lacks thematic depth when compared to other plays by Shakespeare.\"";
       if (ratings_enabled) {
-        result += ", \"rating\": {\"stars\": " + starsReviewer2 + ", \"color\": \"" + star_color + "\"}";
+        if (starsReviewer2 != -1) {
+          result += ", \"rating\": {\"stars\": " + starsReviewer2 + ", \"color\": \"" + star_color + "\"}";
+        }
+        else if (statusCode == 503) {
+          result += ", \"rating\": {\"error\": \"["+  statusCode + "] Unable to contact " + ratings_service + " by opening circuit breaker\"}";
+        }
+        else {
+          result += ", \"rating\": {\"error\": \"["+  statusCode + "] Unable to contact " + ratings_service + "\"}";
+        }
       }
     	result += "}";
     	result += "]";
@@ -191,7 +207,7 @@ public class LibertyRestEndpoint extends Application {
                                 }
                             }
                         }
-                        String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2);
+                        String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
                         System.out.println("Info: " + jsonResStr);
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
@@ -199,24 +215,22 @@ public class LibertyRestEndpoint extends Application {
                 } else if ("true".equals(isCircuitBreakerOpen) 
                 // 503ステータスコードの場合、Envoyがステータスコードを条件としたサーキットブレイカーが開いたか、またはサーキットブレイカーは開いていないが宛先が処理不可能な状態にあると判断する
                 || statusCode == Response.Status.SERVICE_UNAVAILABLE.getStatusCode()) {
-                    System.err.println("Error: "+  statusCode + ", unable to contact " + ratings_service + " by opening circuit breaker");
-                    // フォールバック処理として、レーティングを無効にする
-                    ratings_enabled = false;
-                    String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2);
-                    System.err.println("Error: " + jsonResStr + ", unable to contact " + ratings_service + " by opening circuit breaker");
-                    Response response = Response.status(Response.Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
-                    return response;
+                    System.err.println("ERROR: ["+  Response.Status.SERVICE_UNAVAILABLE.getStatusCode() + "] Unable to contact " + ratings_service + " by opening circuit breaker");
+                    String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
+                    return Response.status(Response.Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                 } else {
-                    System.err.println("Error: "+  statusCode + ", unable to contact " + ratings_service);
-                    return Response.status(statusCode).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"Error: "+  statusCode + ", unable to contact " + ratings_service + "\"}").build();
+                    System.err.println("ERROR: ["+  statusCode + "] Unable to contact " + ratings_service);
+                    String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
+                    return Response.status(statusCode).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                 }
             } catch (ProcessingException e) {
-                System.err.println("Error: unable to contact " + ratings_service + ", got exception " + e);
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"Internal server error\"}").build();
+                System.err.println("ERROR: ["+  e + "] Unable to contact " + ratings_service);
+                String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
             }
         }
 
-        String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2);
+        String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, 0);
         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
     }
 }
