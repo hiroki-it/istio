@@ -120,10 +120,10 @@ public class LibertyRestEndpoint extends Application {
           result += ", \"rating\": {\"stars\": " + starsReviewer1 + ", \"color\": \"" + star_color + "\"}";
         }
         else if (statusCode == 503) {
-          result += ", \"rating\": {\"error\": \"Product reviews are currently temporarily unavailable. for this book. Please try again later.\"}";
+          result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently temporarily unavailable. Please try again later.\"}";
         }
         else {
-          result += ", \"rating\": {\"error\": \"Product reviews are currently unavailable. for this book.\"}";
+          result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently unavailable.\"}";
         }
       }
     	result += "},";
@@ -137,10 +137,10 @@ public class LibertyRestEndpoint extends Application {
           result += ", \"rating\": {\"stars\": " + starsReviewer2 + ", \"color\": \"" + star_color + "\"}";
         }
         else if (statusCode == 503) {
-          result += ", \"rating\": {\"error\": \"Product reviews are currently temporarily unavailable. for this book. Please try again later.\"}";
+          result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently temporarily unavailable. Please try again later.\"}";
         }
         else {
-          result += ", \"rating\": {\"error\": \"Product reviews are currently unavailable. for this book.\"}";
+          result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently unavailable.\"}";
         }
       }
     	result += "}";
@@ -225,7 +225,7 @@ public class LibertyRestEndpoint extends Application {
                 }
             } catch (ProcessingException e) {
                 System.err.println("ERROR: " + e.getMessage());
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"Product reviews are currently unavailable for this book.\"}").build();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"Sorry, product reviews are currently unavailable.\"}").build();
             }
         }
 
