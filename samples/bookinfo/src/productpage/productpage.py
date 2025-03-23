@@ -408,7 +408,7 @@ def getProductReviews(product_id, headers):
     elif res.status_code == 503:
         request_result_counter.labels(destination_app='reviews', response_code=503).inc()
         # 503ステータスコードは高負荷やサーキットブレイカーなどが理由のため、時間の経過で解決するメッセージとする
-        return 503, {'error': 'Sorry, product reviews are currently temporarily unavailable. for this book. Please try again later.'}
+        return 503, res.json()
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='reviews', response_code=status).inc()
