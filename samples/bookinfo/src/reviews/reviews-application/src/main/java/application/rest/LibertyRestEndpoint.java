@@ -120,10 +120,10 @@ public class LibertyRestEndpoint extends Application {
           result += ", \"rating\": {\"stars\": " + starsReviewer1 + ", \"color\": \"" + star_color + "\"}";
         }
         else if (statusCode == 503) {
-          result += ", \"rating\": {\"error\": \"["+  statusCode + "] Unable to contact " + ratings_service + " by opening circuit breaker\"}";
+          result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently temporarily unavailable. for this book. Please try again later.\"}";
         }
         else {
-          result += ", \"rating\": {\"error\": \"["+  statusCode + "] Unable to contact " + ratings_service + "\"}";
+          result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently unavailable. for this book.\"}";
         }
       }
     	result += "},";
@@ -137,10 +137,10 @@ public class LibertyRestEndpoint extends Application {
           result += ", \"rating\": {\"stars\": " + starsReviewer2 + ", \"color\": \"" + star_color + "\"}";
         }
         else if (statusCode == 503) {
-          result += ", \"rating\": {\"error\": \"["+  statusCode + "] Unable to contact " + ratings_service + " by opening circuit breaker\"}";
+          result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently temporarily unavailable. for this book. Please try again later.\"}";
         }
         else {
-          result += ", \"rating\": {\"error\": \"["+  statusCode + "] Unable to contact " + ratings_service + "\"}";
+          result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently unavailable. for this book.\"}";
         }
       }
     	result += "}";
