@@ -40,7 +40,7 @@ import javax.ws.rs.core.Response;
 public class LibertyRestEndpoint extends Application {
 
     private static Boolean ratings_enabled = Boolean.valueOf(System.getenv("ENABLE_RATINGS"));
-    private final static String star_color = System.getenv("STAR_COLOR") == null ? "black" : System.getenv("STAR_COLOR");
+    private static String star_color = System.getenv("STAR_COLOR") == null ? "black" : System.getenv("STAR_COLOR");
     private final static String services_domain = System.getenv("SERVICES_DOMAIN") == null ? "" : ("." + System.getenv("SERVICES_DOMAIN"));
     private final static String ratings_hostname = System.getenv("RATINGS_HOSTNAME") == null ? "ratings" : System.getenv("RATINGS_HOSTNAME");
     private final static String ratings_port = System.getenv("RATINGS_SERVICE_PORT") == null ? "9080" : System.getenv("RATINGS_SERVICE_PORT");
@@ -115,14 +115,18 @@ public class LibertyRestEndpoint extends Application {
     	result += "{";
     	result += "  \"reviewer\": \"Reviewer1\",";
     	result += "  \"text\": \"An extremely entertaining play by Shakespeare. The slapstick humour is refreshing!\"";
-      result += ", \"rating\": {\"stars\": " + starsReviewer1 + ", \"color\": \"" + star_color + "\"}";
+      if (ratings_enabled) {
+        result += ", \"rating\": {\"stars\": " + starsReviewer1 + ", \"color\": \"" + star_color + "\"}";
+      }
     	result += "},";
 
     	// reviewer 2:
     	result += "{";
     	result += "  \"reviewer\": \"Reviewer2\",";
     	result += "  \"text\": \"Absolutely fun and entertaining. The play lacks thematic depth when compared to other plays by Shakespeare.\"";
-      result += ", \"rating\": {\"stars\": " + starsReviewer2 + ", \"color\": \"" + star_color + "\"}";
+      if (ratings_enabled) {
+        result += ", \"rating\": {\"stars\": " + starsReviewer2 + ", \"color\": \"" + star_color + "\"}";
+      }
     	result += "}";
     	result += "]";
     	result += "}";
@@ -168,7 +172,6 @@ public class LibertyRestEndpoint extends Application {
 
                 //レスポンスヘッダーのダンプ
                 System.out.println("Response Headers:");
-
                 for (Map.Entry<String, List<Object>> entry : r.getHeaders().entrySet()) {
                     System.out.println(entry.getKey() + ": " + entry.getValue());
                 }
@@ -189,6 +192,7 @@ public class LibertyRestEndpoint extends Application {
                             }
                         }
                         String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2);
+                        System.out.println("Info: " + jsonResStr);
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
                     // x-envoy-overloadedヘッダーがtrueの場合、Envoyがコネクションプールを条件としたサーキットブレイカーを開いたと判断する
@@ -199,9 +203,8 @@ public class LibertyRestEndpoint extends Application {
                     // フォールバック処理として、レーティングを無効にする
                     ratings_enabled = false;
                     String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2);
-                    ratings_enabled = !ratings_enabled;
+                    System.err.println("Error: " + jsonResStr + ", unable to contact " + ratings_service + " by opening circuit breaker");
                     Response response = Response.status(Response.Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
-                    System.err.println(response);
                     return response;
                 } else {
                     System.err.println("Error: "+  statusCode + ", unable to contact " + ratings_service);
