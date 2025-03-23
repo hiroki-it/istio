@@ -224,9 +224,8 @@ public class LibertyRestEndpoint extends Application {
                     return Response.status(statusCode).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                 }
             } catch (ProcessingException e) {
-                System.err.println("ERROR: ["+  e + "] Unable to contact " + ratings_service);
-                String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
+                System.err.println("ERROR: " + e.getMessage());
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"product reviews are currently unavailable for this book.\"}").build();
             }
         }
 
