@@ -16,8 +16,6 @@
 package application.rest;
 
 import java.io.StringReader;
-import java.util.List;
-import java.util.Map;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -187,12 +185,6 @@ public class LibertyRestEndpoint extends Application {
                 // サーキットブレイカーの状態を表すヘッダーをレスポンスから取得する
                 // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
                 String isCircuitBreakerOpen = r.getHeaderString("x-envoy-overloaded");
-
-                //レスポンスヘッダーのダンプ
-                System.out.println("Response Headers:");
-                for (Map.Entry<String, List<Object>> entry : r.getHeaders().entrySet()) {
-                    System.out.println(entry.getKey() + ": " + entry.getValue());
-                }
 
                 if (statusCode == Response.Status.OK.getStatusCode()) {
                     try (StringReader stringReader = new StringReader(r.readEntity(String.class));
