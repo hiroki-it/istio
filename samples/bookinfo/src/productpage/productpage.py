@@ -382,8 +382,7 @@ def getProductDetails(product_id, headers):
         return 403, {'error': 'Please sign in to view product details.'}
     elif res and res.status_code == 503:
         request_result_counter.labels(destination_app='details', response_code=503).inc()
-        # サーキットブレイカーなどの理由で503ステータスコードを返信した場合、時間が経過すれば解決する可能性があるメッセージとする
-        return 503, {'error': 'Sorry, product reviews are currently temporarily unavailable. Please try again later.'}
+        return 503, res.json()
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='details', response_code=status).inc()
@@ -407,12 +406,11 @@ def getProductReviews(product_id, headers):
         return 403, {'error': 'Please sign in to view product reviews.'}
     elif res and res.status_code == 503:
         request_result_counter.labels(destination_app='reviews', response_code=503).inc()
-        # 503ステータスコードは高負荷やサーキットブレイカーなどが理由のため、時間の経過で解決するメッセージとする
         return 503, res.json()
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='reviews', response_code=status).inc()
-        return status, res.json()
+        return status, {'error': 'Sorry, product reviews are currently unavailable.'}
 
 
 def getProductRatings(product_id, headers):
@@ -429,12 +427,11 @@ def getProductRatings(product_id, headers):
         return 403, {'error': 'Please sign in to view product ratings.'}
     elif res and res.status_code == 503:
         request_result_counter.labels(destination_app='ratings', response_code=503).inc()
-        # サーキットブレイカーなどの理由で503ステータスコードを返信した場合、時間が経過すれば解決する可能性があるメッセージとする
-        return 503, {'error': 'Sorry, product reviews are currently temporarily unavailable. Please try again later.'}
+        return 503, res.json()
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='ratings', response_code=status).inc()
-        return status, {'error': 'Sorry, product details are currently unavailable.'}
+        return status, {'error': 'Sorry, product ratings are currently unavailable.'}
 
 
 def send_request(url, **kwargs):

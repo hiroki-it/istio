@@ -119,6 +119,7 @@ public class LibertyRestEndpoint extends Application {
         if (starsReviewer1 != -1) {
           result += ", \"rating\": {\"stars\": " + starsReviewer1 + ", \"color\": \"" + star_color + "\"}";
         }
+        // ratingsサービスの503ステータスコードは高負荷やサーキットブレイカーなどが理由のため、レーティング機能が時間の経過で解決することを伝えるメッセージとする
         else if (statusCode == 503) {
           result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently temporarily unavailable. Please try again later.\"}";
         }
@@ -136,6 +137,7 @@ public class LibertyRestEndpoint extends Application {
         if (starsReviewer2 != -1) {
           result += ", \"rating\": {\"stars\": " + starsReviewer2 + ", \"color\": \"" + star_color + "\"}";
         }
+        // ratingsサービスの503ステータスコードは高負荷やサーキットブレイカーなどが理由のため、レーティング機能が時間の経過で解決することを伝えるメッセージとする
         else if (statusCode == 503) {
           result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently temporarily unavailable. Please try again later.\"}";
         }
@@ -225,6 +227,7 @@ public class LibertyRestEndpoint extends Application {
                 }
             } catch (ProcessingException e) {
                 System.err.println("ERROR: " + e.getMessage());
+                // reviewsサービスの500ステータスコードは障害が理由のため、レビュー機能が利用できないこと伝えるメッセージとする
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"Sorry, product reviews are currently unavailable.\"}").build();
             }
         }
