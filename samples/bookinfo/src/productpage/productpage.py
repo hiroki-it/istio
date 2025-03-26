@@ -295,7 +295,7 @@ def front():
     # detailsサービスにリクエストを送信する
     detailsStatus, details = getProductDetails(product_id, headers)
 
-    logging.info("[" + str(detailsStatus) + "] " + str(details))
+    logging.info("[" + str(detailsStatus) + "] details response is " + str(details))
 
     if flood_factor > 0:
         floodReviews(product_id, headers)
@@ -303,7 +303,7 @@ def front():
     # reviewsサービスにリクエストを送信する
     reviewsStatus, reviews = getProductReviews(product_id, headers)
 
-    logging.info("[" + str(reviewsStatus) + "] " + str(reviews))
+    logging.info("[" + str(reviewsStatus) + "] reviews response is " + str(reviews))
 
     # いずれかのマイクロサービスでアクセストークンの検証が失敗し、401ステータスが返信された場合、ログアウトする
     if detailsStatus == 401 or reviewsStatus == 401:
