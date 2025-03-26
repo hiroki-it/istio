@@ -295,15 +295,11 @@ def front():
     # detailsサービスにリクエストを送信する
     detailsStatus, details = getProductDetails(product_id, headers)
 
-    logging.info("[" + str(detailsStatus) + "] details response is " + str(details))
-
     if flood_factor > 0:
         floodReviews(product_id, headers)
 
     # reviewsサービスにリクエストを送信する
     reviewsStatus, reviews = getProductReviews(product_id, headers)
-
-    logging.info("[" + str(reviewsStatus) + "] reviews response is " + str(reviews))
 
     # いずれかのマイクロサービスでアクセストークンの検証が失敗し、401ステータスが返信された場合、ログアウトする
     if detailsStatus == 401 or reviewsStatus == 401:
@@ -374,6 +370,7 @@ def getProductDetails(product_id, headers):
     try:
         url = details['name'] + "/" + details['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
+        logging.info("[" + str(res.status_code) + "] details response is " + str(res.json()))
     except BaseException:
         res = None
     if res and res.status_code == 200:
@@ -398,6 +395,7 @@ def getProductReviews(product_id, headers):
         try:
             url = reviews['name'] + "/" + reviews['endpoint'] + "/" + str(product_id)
             res = send_request(url, headers=headers, timeout=3.0)
+            logging.info("[" + str(res.status_code) + "] details response is " + str(res.json()))
         except BaseException:
             res = None
     if res and res.status_code == 200:
@@ -419,6 +417,7 @@ def getProductRatings(product_id, headers):
     try:
         url = ratings['name'] + "/" + ratings['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
+        logging.info("[" + str(res.status_code) + "] details response is " + str(res.json()))
     except BaseException:
         res = None
     if res and res.status_code == 200:
