@@ -202,11 +202,10 @@ public class LibertyRestEndpoint extends Application {
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
                 }
-                
+
                 // コネクションプールの状態を表すヘッダーをレスポンスから取得する
                 // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
                 String isConnectionPoolOverflow = r.getHeaderString("x-envoy-overloaded");
-
                 // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている
                 if ("true".equals(isConnectionPoolOverflow)){
                     System.err.println("ERROR: Connection pool is overflowing.");
@@ -214,6 +213,7 @@ public class LibertyRestEndpoint extends Application {
                 System.err.println("ERROR: ["+  statusCode + "] Failed to get data from " + ratings_service);
                 String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
                 return Response.status(statusCode).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
+            
             } catch (ProcessingException e) {
                 System.err.println("ERROR: " + e.getMessage());
                 // reviewsサービスの500ステータスコードは障害が理由のため、レビュー機能が利用できないこと伝えるメッセージとする
