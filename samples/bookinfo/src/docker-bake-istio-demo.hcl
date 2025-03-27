@@ -25,7 +25,15 @@ images = [
       star_color      = "red"
     }
     source = "reviews"
-  }
+  },
+  // Ratings
+  {
+    name = "examples-bookinfo-ratings-v-connection-reset"
+    args = {
+      service_version = "v-connection-reset"
+    }
+    source = "ratings"
+  },
 ]
 
 target "default" {

@@ -202,6 +202,15 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
               getLocalReviewsSuccessful(res, productId)
           }
       }
+      else if (process.env.SERVICE_VERSION === 'v-connection-reset') {
+        // 50%の確率で、接続をリセットする
+        var random = Math.random();
+        if (random <= 0.5) {
+          res.socket.destroy();
+        } else {
+          getLocalReviewsSuccessful(res, productId)
+        }
+    }
       else {
         getLocalReviewsSuccessful(res, productId)
       }
