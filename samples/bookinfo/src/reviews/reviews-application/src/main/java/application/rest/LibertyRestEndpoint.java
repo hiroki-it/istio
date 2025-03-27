@@ -182,9 +182,9 @@ public class LibertyRestEndpoint extends Application {
 
                 int statusCode = r.getStatusInfo().getStatusCode();
 
-                // サーキットブレイカーの状態を表すヘッダーをレスポンスから取得する
+                // コネクションプールの状態を表すヘッダーをレスポンスから取得する
                 // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
-                String isCircuitBreakerOpen = r.getHeaderString("x-envoy-overloaded");
+                String isConnectionPoolOverflow = r.getHeaderString("x-envoy-overloaded");
 
                 if (statusCode == Response.Status.OK.getStatusCode()) {
                     try (StringReader stringReader = new StringReader(r.readEntity(String.class));
@@ -205,18 +205,19 @@ public class LibertyRestEndpoint extends Application {
                         System.out.println("Info: " + jsonResStr);
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
-                    // x-envoy-overloadedヘッダーがtrueの場合、Envoyがコネクションプールを条件としたサーキットブレイカーを開いたと判断する
-                } else if ("true".equals(isCircuitBreakerOpen) 
-                // 503ステータスコードの場合、Envoyがステータスコードを条件としたサーキットブレイカーが開いたか、またはサーキットブレイカーは開いていないが宛先が処理不可能な状態にあると判断する
-                || statusCode == Response.Status.SERVICE_UNAVAILABLE.getStatusCode()) {
-                    System.err.println("ERROR: ["+  Response.Status.SERVICE_UNAVAILABLE.getStatusCode() + "] Unable to contact " + ratings_service + " by opening circuit breaker");
+                }
+                if (statusCode == Response.Status.SERVICE_UNAVAILABLE.getStatusCode()) {
+                    System.err.println("ERROR: ["+  Response.Status.SERVICE_UNAVAILABLE.getStatusCode() + "] Failed to get data from " + ratings_service);
+                    // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている
+                    if ("true".equals(isConnectionPoolOverflow)){
+                        System.err.println("ERROR: Connection pool is overflowing.");
+                    }
                     String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
                     return Response.status(Response.Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
-                } else {
-                    System.err.println("ERROR: ["+  statusCode + "] Unable to contact " + ratings_service);
-                    String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
-                    return Response.status(statusCode).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                 }
+                System.err.println("ERROR: ["+  statusCode + "] Failed to get data from " + ratings_service);
+                String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
+                return Response.status(statusCode).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
             } catch (ProcessingException e) {
                 System.err.println("ERROR: " + e.getMessage());
                 // reviewsサービスの500ステータスコードは障害が理由のため、レビュー機能が利用できないこと伝えるメッセージとする
