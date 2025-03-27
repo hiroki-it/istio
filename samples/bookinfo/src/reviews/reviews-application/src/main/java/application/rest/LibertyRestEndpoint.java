@@ -182,10 +182,6 @@ public class LibertyRestEndpoint extends Application {
 
                 int statusCode = r.getStatusInfo().getStatusCode();
 
-                // コネクションプールの状態を表すヘッダーをレスポンスから取得する
-                // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
-                String isConnectionPoolOverflow = r.getHeaderString("x-envoy-overloaded");
-
                 if (statusCode == Response.Status.OK.getStatusCode()) {
                     try (StringReader stringReader = new StringReader(r.readEntity(String.class));
                         JsonReader jsonReader = Json.createReader(stringReader)) {
@@ -206,6 +202,11 @@ public class LibertyRestEndpoint extends Application {
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
                 }
+                
+                // コネクションプールの状態を表すヘッダーをレスポンスから取得する
+                // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
+                String isConnectionPoolOverflow = r.getHeaderString("x-envoy-overloaded");
+
                 // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている
                 if ("true".equals(isConnectionPoolOverflow)){
                     System.err.println("ERROR: Connection pool is overflowing.");
