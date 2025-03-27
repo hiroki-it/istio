@@ -395,7 +395,7 @@ def getProductReviews(product_id, headers):
         try:
             url = reviews['name'] + "/" + reviews['endpoint'] + "/" + str(product_id)
             res = send_request(url, headers=headers, timeout=3.0)
-            logging.info("[" + str(res.status_code) + "] details response is " + str(res.json()))
+            logging.info("[" + str(res.status_code) + "] reviews response is " + str(res.json()))
         except BaseException:
             res = None
     if res and res.status_code == 200:
@@ -417,7 +417,7 @@ def getProductRatings(product_id, headers):
     try:
         url = ratings['name'] + "/" + ratings['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
-        logging.info("[" + str(res.status_code) + "] details response is " + str(res.json()))
+        logging.info("[" + str(res.status_code) + "] ratings response is " + str(res.json()))
     except BaseException:
         res = None
     if res and res.status_code == 200:
