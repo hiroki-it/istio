@@ -206,14 +206,9 @@ public class LibertyRestEndpoint extends Application {
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
                 }
-                if (statusCode == Response.Status.SERVICE_UNAVAILABLE.getStatusCode()) {
-                    System.err.println("ERROR: ["+  Response.Status.SERVICE_UNAVAILABLE.getStatusCode() + "] Failed to get data from " + ratings_service);
-                    // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている
-                    if ("true".equals(isConnectionPoolOverflow)){
-                        System.err.println("ERROR: Connection pool is overflowing.");
-                    }
-                    String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
-                    return Response.status(Response.Status.SERVICE_UNAVAILABLE).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
+                // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている
+                if ("true".equals(isConnectionPoolOverflow)){
+                    System.err.println("ERROR: Connection pool is overflowing.");
                 }
                 System.err.println("ERROR: ["+  statusCode + "] Failed to get data from " + ratings_service);
                 String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
