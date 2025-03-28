@@ -207,7 +207,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
         var random = Math.random();
         if (random <= 0.5) {
           res.socket.destroy();
-          console.log("Reset connection.")
+          console.log("Connection was reset.")
         } else {
           getLocalReviewsSuccessful(res, productId)
         }
