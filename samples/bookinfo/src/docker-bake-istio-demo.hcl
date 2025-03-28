@@ -28,9 +28,9 @@ images = [
   },
   // Ratings
   {
-    name = "examples-bookinfo-ratings-v-internal-server-error"
+    name = "examples-bookinfo-ratings-v-internal-server-error-500-50percent"
     args = {
-      service_version = "v-internal-server-error"
+      service_version = "v-internal-server-error-500-50percent"
     }
     source = "ratings"
   },

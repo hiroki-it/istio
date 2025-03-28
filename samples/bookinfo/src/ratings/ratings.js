@@ -202,9 +202,14 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
               getLocalReviewsSuccessful(res, productId)
           }
       }
-      // 500ステータスでInternal Server Errorを返信する
-      else if (process.env.SERVICE_VERSION === 'v-internal-server-error') {
-          getLocalReviewsInternalServerError(res)
+      else if (process.env.SERVICE_VERSION === 'v-internal-server-error-50percent') {
+          // 50%の確率で、500ステータスを返信する
+          var random = Math.random();
+          if (random <= 0.5) {
+              getLocalReviewsInternalServerError(res)
+          } else {
+              getLocalReviewsSuccessful(res, productId)
+          }
       }
       else {
         getLocalReviewsSuccessful(res, productId)
