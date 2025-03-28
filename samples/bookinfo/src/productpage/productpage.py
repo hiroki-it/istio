@@ -379,7 +379,7 @@ def getProductDetails(product_id, headers):
     elif res and res.status_code == 403:
         request_result_counter.labels(destination_app='details', response_code=403).inc()
         return 403, {'error': 'Please sign in to view product details.'}
-    elif res and res.status_code == 503:
+    elif res is not None and res.status_code == 503:
         request_result_counter.labels(destination_app='details', response_code=503).inc()
         return 503, res.json()
     else:
@@ -404,7 +404,7 @@ def getProductReviews(product_id, headers):
     elif res and res.status_code == 403:
         request_result_counter.labels(destination_app='reviews', response_code=403).inc()
         return 403, {'error': 'Please sign in to view product reviews.'}
-    elif res and res.status_code == 503:
+    elif res is not None and res.status_code == 503:
         request_result_counter.labels(destination_app='reviews', response_code=503).inc()
         return 503, res.json()
     else:
@@ -426,7 +426,7 @@ def getProductRatings(product_id, headers):
     elif res and res.status_code == 403:
         request_result_counter.labels(destination_app='ratings', response_code=403).inc()
         return 403, {'error': 'Please sign in to view product ratings.'}
-    elif res and res.status_code == 503:
+    elif res is not None and res.status_code == 503:
         request_result_counter.labels(destination_app='ratings', response_code=503).inc()
         return 503, res.json()
     else:
