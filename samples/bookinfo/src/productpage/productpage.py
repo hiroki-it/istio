@@ -294,17 +294,20 @@ def front():
 
     # detailsサービスにリクエストを送信する
     detailsStatus, details = getProductDetails(product_id, headers)
+    logging.info("[" + str(detailsStatus) + "] details response is " + str(details))
+
 
     if flood_factor > 0:
         floodReviews(product_id, headers)
 
     # reviewsサービスにリクエストを送信する
     reviewsStatus, reviews = getProductReviews(product_id, headers)
+    logging.info("[" + str(reviewsStatus) + "] details response is " + str(reviews))
 
     # いずれかのマイクロサービスでアクセストークンの検証が失敗し、401ステータスが返信された場合、ログアウトする
     if detailsStatus == 401 or reviewsStatus == 401:
         redirect_uri = url_for('logout', _external=True)
-        logging.info("[" + str(401) + "] session has expired.")
+        print("[" + str(401) + "] session has expired.", flush=True)
         return redirect(redirect_uri)
 
     return render_template(
@@ -371,13 +374,12 @@ def getProductDetails(product_id, headers):
     try:
         url = details['name'] + "/" + details['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
-        logging.info("[" + str(res.status_code) + "] details response is " + str(res.json()))
     except BaseException:
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='details', response_code=200).inc()
         return 200, res.json()
-    elif res and res.status_code == 403:
+    elif res is not None and res.status_code == 403:
         request_result_counter.labels(destination_app='details', response_code=403).inc()
         return 403, {'error': 'Please sign in to view product details.'}
     elif res is not None and res.status_code == 503:
@@ -396,13 +398,12 @@ def getProductReviews(product_id, headers):
         try:
             url = reviews['name'] + "/" + reviews['endpoint'] + "/" + str(product_id)
             res = send_request(url, headers=headers, timeout=3.0)
-            logging.info("[" + str(res.status_code) + "] reviews response is " + str(res.json()))
         except BaseException:
             res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='reviews', response_code=200).inc()
         return 200, res.json()
-    elif res and res.status_code == 403:
+    elif res is not None and res.status_code == 403:
         request_result_counter.labels(destination_app='reviews', response_code=403).inc()
         return 403, {'error': 'Please sign in to view product reviews.'}
     elif res is not None and res.status_code == 503:
@@ -418,13 +419,12 @@ def getProductRatings(product_id, headers):
     try:
         url = ratings['name'] + "/" + ratings['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
-        logging.info("[" + str(res.status_code) + "] ratings response is " + str(res.json()))
     except BaseException:
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='ratings', response_code=200).inc()
         return 200, res.json()
-    elif res and res.status_code == 403:
+    elif res is not None and res.status_code == 403:
         request_result_counter.labels(destination_app='ratings', response_code=403).inc()
         return 403, {'error': 'Please sign in to view product ratings.'}
     elif res is not None and res.status_code == 503:
