@@ -28,9 +28,9 @@ images = [
   },
   // Ratings
   {
-    name = "examples-bookinfo-ratings-v-connection-reset"
+    name = "examples-bookinfo-ratings-v-internal-server-error"
     args = {
-      service_version = "v-connection-reset"
+      service_version = "v-internal-server-error"
     }
     source = "ratings"
   },

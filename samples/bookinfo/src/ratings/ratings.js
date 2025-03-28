@@ -202,6 +202,10 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
               getLocalReviewsSuccessful(res, productId)
           }
       }
+      // 500ステータスでInternal Server Errorを返信する
+      else if (process.env.SERVICE_VERSION === 'v-internal-server-error') {
+          getLocalReviewsInternalServerError(res)
+      }
       else {
         getLocalReviewsSuccessful(res, productId)
       }
@@ -236,6 +240,10 @@ function getLocalReviewsServiceUnavailable(res) {
   res.end(JSON.stringify({error: 'Service unavailable'}))
 }
 
+function getLocalReviewsInternalServerError(res) {
+  res.writeHead(500, {'Content-type': 'application/json'})
+  res.end(JSON.stringify({error: 'Internal Server Error'}))
+}
 function getLocalReviews (productId) {
   if (typeof userAddedRatings[productId] !== 'undefined') {
       return userAddedRatings[productId]
