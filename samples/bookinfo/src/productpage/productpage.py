@@ -248,7 +248,7 @@ def callback():
     id_token = oauth.keycloak.parse_id_token(token, None)
     session['user'] = id_token['given_name']
     response = app.make_response(redirect(url_for('front', _external=True)))
-    # Cookieにアクセストークンを設定する
+    # Cookieヘッダーにアクセストークンを設定する
     response.set_cookie('access_token', token['access_token'])
     return response
 
@@ -259,7 +259,7 @@ def logout():
     session.pop('id_token', None)
     session.pop('user', None)
     response = app.make_response(redirect(redirect_uri))
-    # Cookieにアクセストークンを削除する
+    # Cookieヘッダーのアクセストークンを削除する
     response.delete_cookie('access_token')
     return response
 
