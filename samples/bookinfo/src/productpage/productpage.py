@@ -305,7 +305,7 @@ def front():
 
     # いずれかのマイクロサービスでアクセストークンの検証が失敗し、401ステータスが返信された場合、ログアウトする
     if detailsStatus == 401 or reviewsStatus == 401:
-        logging.info("[" + str(401) + "] session has expired.")
+        logging.info("[" + str(401) + "] access token is invalid.")
         redirect_uri = url_for('logout', _external=True)
         return redirect(redirect_uri)
 
