@@ -4,16 +4,14 @@
 #
 #    pip-compile --generate-hashes requirements.in
 #
-authlib==1.4.0 \
-    --hash=sha256:1c1e6608b5ed3624aeeee136ca7f8c120d6f51f731aa152b153d54741840e1f2 \
-    --hash=sha256:4bb20b978c8b636222b549317c1815e1fe62234fc1c5efe8855d84aebf3a74e3
-    # via flask-oidc
+authlib==1.5.1 \
+    --hash=sha256:5cbc85ecb0667312c1cdc2f9095680bb735883b123fb509fde1e65b1c5df972e \
+    --hash=sha256:8408861cbd9b4ea2ff759b00b6f02fd7d81ac5a56d0b2b22c08606c6049aae11
+    # via -r requirements.in
 blinker==1.8.2 \
     --hash=sha256:1779309f71bf239144b9399d06ae925637cf6634cf6bd131104184531bf67c01 \
     --hash=sha256:8f77b09d3bf7c795e969e9486f39c2c5e9c39d4ee07424be2bc594ece9642d83
-    # via
-    #   flask
-    #   flask-oidc
+    # via flask
 certifi==2024.7.4 \
     --hash=sha256:5a1e7645bc0ec61a09e26c36f6106dd4cf40c6db3a1fb6352b0244e7fb057c7b \
     --hash=sha256:c198e21b1289c2ab85ee4e67bb4b4ef3ead0892059901a8d5b622f24a1101e90
@@ -229,17 +227,12 @@ flask==3.0.2 \
     #   -r requirements.in
     #   flask-bootstrap
     #   flask-json
-    #   flask-oidc
 flask-bootstrap==3.3.7.1 \
     --hash=sha256:cb08ed940183f6343a64e465e83b3a3f13c53e1baabb8d72b5da4545ef123ac8
     # via -r requirements.in
 flask-json==0.4.0 \
     --hash=sha256:07945d66024f3b77694ce1db5d1fe83940f2aa3bcad8a608535686be67e4bc48 \
     --hash=sha256:1c1b87a657daa2179fc19f1ffc78204a716c7c5139673dc5038772db4d9f1988
-    # via -r requirements.in
-flask-oidc==2.2.2 \
-    --hash=sha256:a197ca54c92c0765e0954668cfb7b3d5a0b55ef083456996051096fa29d7c874 \
-    --hash=sha256:c2458254994505c03c9daa0c6b82cc7ff91b7b6558048b8643de6fbb829306d7
     # via -r requirements.in
 future==0.18.3 \
     --hash=sha256:34a17436ed1e96697a86f9de3d15a3b0be01d8bc8de9c1dffd59fb8234ed5307
@@ -501,9 +494,7 @@ pycparser==2.22 \
 requests==2.32.2 \
     --hash=sha256:dd951ff5ecf3e3b3aa26b40703ba77495dab41da839ae72ef3c8e5d8e2433289 \
     --hash=sha256:fc06670dd0ed212426dfeb94fc1b983d917c4f9847c863f313c9dfaaffb7c23c
-    # via
-    #   -r requirements.in
-    #   flask-oidc
+    # via -r requirements.in
 simplejson==3.19.2 \
     --hash=sha256:0405984f3ec1d3f8777c4adc33eac7ab7a3e629f3b1c05fdded63acc7cf01137 \
     --hash=sha256:0436a70d8eb42bea4fe1a1c32d371d9bb3b62c637969cb33970ad624d5a3336a \
