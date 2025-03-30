@@ -296,7 +296,6 @@ def front():
     detailsStatus, details = getProductDetails(product_id, headers)
     logging.info("[" + str(detailsStatus) + "] details response is " + str(details))
 
-
     if flood_factor > 0:
         floodReviews(product_id, headers)
 
@@ -310,14 +309,16 @@ def front():
         redirect_uri = url_for('logout', _external=True)
         return redirect(redirect_uri)
 
-    return render_template(
+    response = app.make_response(render_template(
         'productpage.html',
         detailsStatus=detailsStatus,
         reviewsStatus=reviewsStatus,
         product=product,
         details=details,
         reviews=reviews,
-        user=user)
+        user=user))
+
+    return response
 
 # API Gatewayとして
 @app.route('/api/v1/products')
