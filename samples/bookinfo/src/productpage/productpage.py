@@ -390,7 +390,11 @@ def getProductDetails(product_id, headers):
         return 403, {'error': 'Please sign in to view product details.'}
     elif res is not None and res.status_code == 503:
         request_result_counter.labels(destination_app='details', response_code=503).inc()
-        return 503, res.json()
+        try:
+          return 503, res.json()
+        except BaseException:
+          # detailsサービスが503ステータスでJSONデータがない場合
+          return 503, {'error': 'Sorry, product details are currently unavailable.'}
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='details', response_code=status).inc()
@@ -414,7 +418,11 @@ def getProductReviews(product_id, headers):
         return 403, {'error': 'Please sign in to view product reviews.'}
     elif res is not None and res.status_code == 503:
         request_result_counter.labels(destination_app='reviews', response_code=503).inc()
-        return 503, res.json()
+        try:
+          return 503, res.json()
+        except BaseException:
+          # reviewsサービスが503ステータスでJSONデータがない場合
+          return 503, {'error': 'Sorry, product reviews are currently unavailable.'}
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='reviews', response_code=status).inc()
@@ -435,7 +443,11 @@ def getProductRatings(product_id, headers):
         return 403, {'error': 'Please sign in to view product ratings.'}
     elif res is not None and res.status_code == 503:
         request_result_counter.labels(destination_app='ratings', response_code=503).inc()
-        return 503, res.json()
+        try:
+          return 503, res.json()
+        except BaseException:
+          # ratingsサービスが503ステータスでJSONデータがない場合
+          return 503, {'error': 'Sorry, product ratings are currently unavailable.'}
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='ratings', response_code=status).inc()
