@@ -237,7 +237,8 @@ def health():
 @app.route('/login')
 def login():
     redirect_uri = url_for("callback", _external=True)
-    return oauth.keycloak.authorize_redirect(redirect_uri)
+    redirectResponse = oauth.keycloak.authorize_redirect(redirect_uri)
+    return redirectResponse
 
 @app.route("/callback")
 def callback():
