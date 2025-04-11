@@ -402,14 +402,11 @@ def getProductDetails(product_id, headers):
 
 
 def getProductReviews(product_id, headers):
-    # Do not remove. Bug introduced explicitly for illustration in fault injection task
-    # TODO: Figure out how to achieve the same effect using Envoy retries/timeouts
-    for _ in range(2):
-        try:
-            url = reviews['name'] + "/" + reviews['endpoint'] + "/" + str(product_id)
-            res = send_request(url, headers=headers, timeout=3.0)
-        except BaseException:
-            res = None
+    try:
+        url = reviews['name'] + "/" + reviews['endpoint'] + "/" + str(product_id)
+        res = send_request(url, headers=headers, timeout=3.0)
+    except BaseException:
+        res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='reviews', response_code=200).inc()
         return 200, res.json()
