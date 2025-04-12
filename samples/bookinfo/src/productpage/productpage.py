@@ -238,12 +238,14 @@ def health():
 
 @app.route('/login')
 def login():
+    logger.bind(trace_id=get_trace_id()).info("start to login.")
     redirect_uri = url_for("callback", _external=True)
     redirectResponse = oauth.keycloak.authorize_redirect(redirect_uri)
     return redirectResponse
 
 @app.route("/callback")
 def callback():
+    logger.bind(trace_id=get_trace_id()).info("start to callback.")
     response = app.make_response(redirect(url_for('front', _external=True)))
 
     try:
@@ -255,13 +257,14 @@ def callback():
       session['user'] = id_token['given_name']
       # Cookieヘッダーにアクセストークンを設定する
       response.set_cookie('access_token', token['access_token'])
-    except BaseException:
-      logger.bind(trace_id=get_trace_id()).error("failed to callback")
+    except BaseException as e:
+      logger.bind(trace_id=get_trace_id()).error(e)
     
     return response
 
 @app.route('/logout')
 def logout():
+    logger.bind(trace_id=get_trace_id()).info("start to logout.")
     # Keycloakからログアウトし、productpageにリダイレクトする
     redirect_uri = ("http://localhost:8080/realms/dev/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s" % (session.get('id_token', ''), url_for("front", _external=True)))
     session.pop('id_token', None)
@@ -383,7 +386,8 @@ def getProductDetails(product_id, headers):
     try:
         url = details['name'] + "/" + details['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
-    except BaseException:
+    except BaseException as e:
+        logger.bind(trace_id=get_trace_id()).error(e)
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='details', response_code=200).inc()
@@ -395,7 +399,8 @@ def getProductDetails(product_id, headers):
         request_result_counter.labels(destination_app='details', response_code=503).inc()
         try:
           return 503, res.json()
-        except BaseException:
+        except BaseException as e:
+          logger.bind(trace_id=get_trace_id()).error(e)
           # detailsサービスが503ステータスでJSONデータがない場合
           return 503, {'error': 'Sorry, product details are currently unavailable.'}
     else:
@@ -408,7 +413,8 @@ def getProductReviews(product_id, headers):
     try:
         url = reviews['name'] + "/" + reviews['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
-    except BaseException:
+    except BaseException as e:
+        logger.bind(trace_id=get_trace_id()).error(e)
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='reviews', response_code=200).inc()
@@ -420,7 +426,8 @@ def getProductReviews(product_id, headers):
         request_result_counter.labels(destination_app='reviews', response_code=503).inc()
         try:
           return 503, res.json()
-        except BaseException:
+        except BaseException as e:
+          logger.bind(trace_id=get_trace_id()).error(e)
           # reviewsサービスが503ステータスでJSONデータがない場合
           return 503, {'error': 'Sorry, product reviews are currently unavailable.'}
     else:
@@ -433,7 +440,8 @@ def getProductRatings(product_id, headers):
     try:
         url = ratings['name'] + "/" + ratings['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
-    except BaseException:
+    except BaseException as e:
+        logger.bind(trace_id=get_trace_id()).error(e)
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='ratings', response_code=200).inc()
@@ -445,7 +453,8 @@ def getProductRatings(product_id, headers):
         request_result_counter.labels(destination_app='ratings', response_code=503).inc()
         try:
           return 503, res.json()
-        except BaseException:
+        except BaseException as e:
+          logger.bind(trace_id=get_trace_id()).error(e)
           # ratingsサービスが503ステータスでJSONデータがない場合
           return 503, {'error': 'Sorry, product ratings are currently unavailable.'}
     else:
@@ -463,7 +472,7 @@ def get_trace_id():
     # Envoyの作成したtraceparent値を取得する
     traceparent = request.headers.get("traceparent")
     if traceparent:
-        # W3c Trace Context
+        # W3C Trace Context
         # traceparent: 00-<trace_id>-<span_id>-01
         parts = traceparent.split("-")
         if len(parts) >= 2:
