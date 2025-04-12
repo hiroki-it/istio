@@ -258,7 +258,7 @@ def callback():
       # Cookieヘッダーにアクセストークンを設定する
       response.set_cookie('access_token', token['access_token'])
     except BaseException as e:
-      logger.bind(trace_id=get_trace_id()).error(e)
+      logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
     
     return response
 
@@ -387,7 +387,7 @@ def getProductDetails(product_id, headers):
         url = details['name'] + "/" + details['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
     except BaseException as e:
-        logger.bind(trace_id=get_trace_id()).error(e)
+        logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='details', response_code=200).inc()
@@ -400,7 +400,7 @@ def getProductDetails(product_id, headers):
         try:
           return 503, res.json()
         except BaseException as e:
-          logger.bind(trace_id=get_trace_id()).error(e)
+          logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
           # detailsサービスが503ステータスでJSONデータがない場合
           return 503, {'error': 'Sorry, product details are currently unavailable.'}
     else:
@@ -414,7 +414,7 @@ def getProductReviews(product_id, headers):
         url = reviews['name'] + "/" + reviews['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
     except BaseException as e:
-        logger.bind(trace_id=get_trace_id()).error(e)
+        logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='reviews', response_code=200).inc()
@@ -427,7 +427,7 @@ def getProductReviews(product_id, headers):
         try:
           return 503, res.json()
         except BaseException as e:
-          logger.bind(trace_id=get_trace_id()).error(e)
+          logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
           # reviewsサービスが503ステータスでJSONデータがない場合
           return 503, {'error': 'Sorry, product reviews are currently unavailable.'}
     else:
@@ -441,7 +441,7 @@ def getProductRatings(product_id, headers):
         url = ratings['name'] + "/" + ratings['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
     except BaseException as e:
-        logger.bind(trace_id=get_trace_id()).error(e)
+        logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='ratings', response_code=200).inc()
@@ -454,7 +454,7 @@ def getProductRatings(product_id, headers):
         try:
           return 503, res.json()
         except BaseException as e:
-          logger.bind(trace_id=get_trace_id()).error(e)
+          logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
           # ratingsサービスが503ステータスでJSONデータがない場合
           return 503, {'error': 'Sorry, product ratings are currently unavailable.'}
     else:
