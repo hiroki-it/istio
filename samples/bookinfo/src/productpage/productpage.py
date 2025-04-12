@@ -15,6 +15,13 @@
 #   limitations under the License.
 
 import time
+import asyncio
+import logging
+import os
+import requests
+import simplejson as json
+import sys
+
 from flask import Flask, request, session, render_template, redirect, g, url_for
 from json2html import json2html
 from opentelemetry import trace
@@ -24,13 +31,7 @@ from opentelemetry.propagators.b3 import B3MultiFormat
 from opentelemetry.sdk.trace import TracerProvider
 from prometheus_client import Counter, generate_latest
 from authlib.integrations.flask_client import OAuth
-
-import asyncio
-import logging
-import os
-import requests
-import simplejson as json
-import sys
+from loguru import logger
 
 # These two lines enable debugging at httplib level (requests->urllib3->http.client)
 # You will see the REQUEST, including HEADERS and DATA, and RESPONSE with HEADERS but without DATA.
@@ -51,13 +52,14 @@ oauth.register(
     jwks_uri="http://keycloak-http.keycloak.svc.cluster.local:8080/realms/dev/protocol/openid-connect/certs"
 )
 
-FlaskInstrumentor().instrument_app(app)
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-requests_log = logging.getLogger("requests.packages.urllib3")
-requests_log.setLevel(logging.INFO)
-requests_log.propagate = True
-app.logger.addHandler(logging.StreamHandler(sys.stdout))
-app.logger.setLevel(logging.INFO)
+# loguruの設定
+logger.remove() 
+logger.add(
+    sys.stdout,
+    format="{time} {level} {extra[trace_id]} {message}", 
+    # 構造化ログ
+    serialize=True 
+)
 
 # Set the secret key to some random bytes. Keep this really secret!
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -254,7 +256,7 @@ def callback():
       # Cookieヘッダーにアクセストークンを設定する
       response.set_cookie('access_token', token['access_token'])
     except BaseException:
-      logging.info(" failed to callback")
+      logger.bind(trace_id=get_trace_id()).error("failed to callback")
     
     return response
 
@@ -300,18 +302,18 @@ def front():
 
     # detailsサービスにリクエストを送信する
     detailsStatus, details = getProductDetails(product_id, headers)
-    logging.info("[" + str(detailsStatus) + "] details response is " + str(details))
+    logger.bind(trace_id=get_trace_id()).info("[" + str(detailsStatus) + "] details response is " + str(details))
 
     if flood_factor > 0:
         floodReviews(product_id, headers)
 
     # reviewsサービスにリクエストを送信する
     reviewsStatus, reviews = getProductReviews(product_id, headers)
-    logging.info("[" + str(reviewsStatus) + "] reviews response is " + str(reviews))
+    logger.bind(trace_id=get_trace_id()).info("[" + str(reviewsStatus) + "] reviews response is " + str(reviews))
 
     # いずれかのマイクロサービスでアクセストークンの検証が失敗し、401ステータスが返信された場合、ログアウトする
     if detailsStatus == 401 or reviewsStatus == 401:
-        logging.info("[" + str(401) + "] access token is invalid.")
+        logger.bind(trace_id=get_trace_id()).info("[" + str(401) + "] access token is invalid.")
         redirect_uri = url_for('logout', _external=True)
         return redirect(redirect_uri)
 
@@ -457,6 +459,17 @@ def send_request(url, **kwargs):
     return requests.get(url, **kwargs)
 
 
+def get_trace_id():
+    # Envoyの作成したtraceparent値を取得する
+    traceparent = request.headers.get("traceparent")
+    if traceparent:
+        # W3c Trace Context
+        # traceparent: 00-<trace_id>-<span_id>-01
+        parts = traceparent.split("-")
+        if len(parts) >= 2:
+            return parts[1] 
+    return "unknown"
+
 class Writer(object):
     def __init__(self, filename):
         self.file = open(filename, 'w')
@@ -467,14 +480,13 @@ class Writer(object):
     def flush(self):
         self.file.flush()
 
-
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        logging.error("usage: %s port" % (sys.argv[0]))
+        logger.error("usage: %s port" % (sys.argv[0]))
         sys.exit(-1)
 
     p = int(sys.argv[1])
-    logging.info("start at port %s" % (p))
+    logger.info("start at port %s" % (p))
     # Make it compatible with IPv6 if Linux
     if sys.platform == "linux":
         app.run(host='::', port=p, debug=False, threaded=True)
