@@ -17,6 +17,11 @@
 require 'webrick'
 require 'json'
 require 'net/http'
+require 'semantic_logger'
+
+# Semantic Loggerの設定
+SemanticLogger.add_appender(io: $stdout, formatter: :json)
+logger = SemanticLogger['DetailsService']
 
 if ARGV.length < 1 then
     puts "usage: #{$PROGRAM_NAME} port"
@@ -25,13 +30,18 @@ end
 
 port = Integer(ARGV[0])
 
+logger.info("start at port #{port}")
+
 server = WEBrick::HTTPServer.new(
     :BindAddress => '*',
     :Port => port,
     :AcceptCallback => -> (s) { s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1) },
 )
 
-trap 'INT' do server.shutdown end
+trap 'INT' do
+  logger.info("shutting down server")
+  server.shutdown
+end
 
 server.mount_proc '/health' do |req, res|
     res.status = 200
@@ -56,6 +66,7 @@ server.mount_proc '/details' do |req, res|
         res.body = {'error' => error}.to_json
         res['Content-Type'] = 'application/json'
         res.status = 400
+        logger.error("#{error.message}", trace_id: get_trace_id(headers))
     end
 end
 
@@ -109,6 +120,8 @@ def fetch_details_from_external_service(isbn, id, headers)
     isbn10 = get_isbn(book, 'ISBN_10')
     isbn13 = get_isbn(book, 'ISBN_13')
 
+    logger.info("[#{response.code}] googleapis response is #{book}", trace_id: get_trace_id(headers))
+
     return {
         'id' => id,
         'author': book['authors'][0],
@@ -129,6 +142,23 @@ def get_isbn(book, isbn_type)
   end
 
   return isbn_dentifiers[0]['identifier']
+end
+
+def get_trace_id(headers)
+  
+  # Envoyの作成したtraceparent値を取得する
+  traceparent = headers['traceparent']
+
+  if traceparent
+    # W3C Trace Context
+    # traceparent: 00-<trace_id>-<span_id>-01
+    parts = traceparent.split('-')
+    if parts.length >= 2
+      return parts[1] 
+    end
+  end
+
+  return 'unknown'
 end
 
 def get_forward_headers(request)
