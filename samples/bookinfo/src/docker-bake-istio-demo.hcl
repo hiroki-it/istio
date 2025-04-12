@@ -34,6 +34,15 @@ images = [
     }
     source = "ratings"
   },
+  // Details
+  {
+    name = "examples-bookinfo-details-v3"
+    args = {
+      service_version              = "v3"
+      enable_external_book_service = true
+    }
+    source = "details"
+  },
 ]
 
 target "default" {
