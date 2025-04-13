@@ -234,6 +234,7 @@ def index():
 
 @app.route('/health')
 def health():
+    logger.info("productpage received health check.")
     return 'Product page is healthy'
 
 @app.route('/login')
