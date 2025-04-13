@@ -21,7 +21,7 @@ require 'semantic_logger'
 
 # Semantic Loggerの設定
 SemanticLogger.add_appender(io: $stdout, formatter: :json)
-logger = SemanticLogger['DetailsService']
+logger = SemanticLogger['Details']
 
 if ARGV.length < 1 then
     puts "usage: #{$PROGRAM_NAME} port"
@@ -36,6 +36,7 @@ server = WEBrick::HTTPServer.new(
     :BindAddress => '*',
     :Port => port,
     :AcceptCallback => -> (s) { s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1) },
+    :AccessLog => []
 )
 
 trap 'INT' do
@@ -44,6 +45,7 @@ trap 'INT' do
 end
 
 server.mount_proc '/health' do |req, res|
+    logger.info("details received health check.")
     res.status = 200
     res.body = {'status' => 'Details is healthy'}.to_json
     res['Content-Type'] = 'application/json'
@@ -60,13 +62,14 @@ server.mount_proc '/details' do |req, res|
           raise 'please provide numeric product id'
         end
         details = get_book_details(id, headers)
+        logger.info("get book details successfully.", trace_id: get_trace_id(headers))
         res.body = details.to_json
         res['Content-Type'] = 'application/json'
     rescue => error
-        res.body = {'error' => error}.to_json
-        res['Content-Type'] = 'application/json'
-        res.status = 400
         logger.error("#{error.message}", trace_id: get_trace_id(headers))
+        res.body = {'error' => error.message}.to_json
+        res['Content-Type'] = 'application/json'
+        res.status = 500
     end
 end
 
@@ -120,8 +123,6 @@ def fetch_details_from_external_service(isbn, id, headers)
     isbn10 = get_isbn(book, 'ISBN_10')
     isbn13 = get_isbn(book, 'ISBN_13')
 
-    logger.info("[#{response.code}] googleapis response is #{book}", trace_id: get_trace_id(headers))
-
     return {
         'id' => id,
         'author': book['authors'][0],
@@ -132,7 +133,7 @@ def fetch_details_from_external_service(isbn, id, headers)
         'language' => language,
         'ISBN-10' => isbn10,
         'ISBN-13' => isbn13
-  }
+    }
 
 end
 
