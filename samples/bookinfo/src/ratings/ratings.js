@@ -16,7 +16,7 @@ var http = require('http')
 var dispatcher = require('httpdispatcher')
 const pino = require('pino');
 
-const logger = pino();
+let logger = pino();
 var port = parseInt(process.argv[2])
 var userAddedRatings = [] // used to demonstrate POST functionality
 var unavailable = false
@@ -91,6 +91,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
   var productId = parseInt(productIdStr)
 
   if (Number.isNaN(productId)) {
+    logger.error({trace_id: getTraceId(req.header)}, 'please provide numeric product ID')
     res.writeHead(400, {'Content-type': 'application/json'})
     res.end(JSON.stringify({error: 'please provide numeric product ID'}))
   } else if (process.env.SERVICE_VERSION === 'v2' || process.env.SERVICE_VERSION === 'v3') {
@@ -108,15 +109,15 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
 
       connection.connect(function(err) {
           if (err) {
+              logger.error({trace_id: getTraceId(req.header)}, err)
               res.end(JSON.stringify({error: 'could not connect to ratings database'}))
-              logger.error(err, {trace_id: getTraceId(req.headers)})
               return
           }
           connection.query('SELECT Rating FROM ratings', function (err, results, fields) {
               if (err) {
+                  logger.error({trace_id: getTraceId(req.header)}, err)
                   res.writeHead(500, {'Content-type': 'application/json'})
                   res.end(JSON.stringify({error: 'could not perform select'}))
-                  logger.error(err, {trace_id: getTraceId(req.headers)})
               } else {
                   if (results[0]) {
                       firstRating = results[0].Rating
@@ -131,6 +132,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
                           Reviewer2: secondRating
                       }
                   }
+                  logger.info({trace_id: getTraceId(req.headers)}, "get rating successfully.")
                   res.writeHead(200, {'Content-type': 'application/json'})
                   res.end(JSON.stringify(result))
               }
@@ -141,16 +143,16 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
     } else {
       MongoClient.connect(url, function (err, client) {
         if (err) {
+          logger.error({trace_id: getTraceId(req.header)}, err)
           res.writeHead(500, {'Content-type': 'application/json'})
           res.end(JSON.stringify({error: 'could not connect to ratings database'}))
-          logger.error(err, {trace_id: getTraceId(req.headers)})
         } else {
           const db = client.db("test")
           db.collection('ratings').find({}).toArray(function (err, data) {
             if (err) {
+              logger.error({trace_id: getTraceId(req.header)}, err)
               res.writeHead(500, {'Content-type': 'application/json'})
               res.end(JSON.stringify({error: 'could not load ratings from database'}))
-              logger.error(err, {trace_id: getTraceId(req.headers)})
             } else {
               if (data[0]) {
                 firstRating = data[0].rating
@@ -165,6 +167,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
                   Reviewer2: secondRating
                 }
               }
+              logger.info({trace_id: getTraceId(req.headers)}, "get rating successfully.")
               res.writeHead(200, {'Content-type': 'application/json'})
               res.end(JSON.stringify(result))
             }
@@ -218,6 +221,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
 })
 
 dispatcher.onGet('/health', function (req, res) {
+  logger.info("ratings received health check.")
     if (healthy) {
         res.writeHead(200, {'Content-type': 'application/json'})
         res.end(JSON.stringify({status: 'Ratings is healthy'}))
@@ -265,7 +269,7 @@ function getLocalReviews (productId) {
 
 function getTraceId(headers) {
   // Envoyの作成したtraceparent値を取得する
-  const traceparent = headers['traceparent'];
+  const traceparent = headers?.['traceparent'];
   if (traceparent) {
     // W3C Trace Context
     // traceparent: 00-<trace_id>-<span_id>-01
@@ -277,24 +281,24 @@ function getTraceId(headers) {
   return 'unknown';
 }
 
-function handleRequest (request, response) {
+function handleRequest (req, res) {
   try {
-    logger.info(request.method + ' ' + request.url, {trace_id: getTraceId(req.headers)})
-    dispatcher.dispatch(request, response)
+    logger.info({trace_id: getTraceId(req.header)},req.method + ' ' + req.url)
+    dispatcher.dispatch(req, res)
   } catch (err) {
-    logger.error(err, {trace_id: getTraceId(req.headers)})
+    logger.error({trace_id: getTraceId(req.header)}, err)
   }
 }
 
 var server = http.createServer(handleRequest)
 
 process.on('SIGTERM', function () {
-  logger.info("SIGTERM received", {trace_id: getTraceId(req.headers)})
+  logger.info("SIGTERM received")
   server.close(function () {
     process.exit(0);
   });
 });
 
 server.listen(port, function () {
-  logger.info('Server listening on: http://0.0.0.0:' + port, {trace_id: getTraceId(req.headers)})
+  logger.info('Server listening on: http://0.0.0.0:' + port)
 })
