@@ -14,11 +14,11 @@
 
 var http = require('http')
 var dispatcher = require('httpdispatcher')
+const pino = require('pino');
 
+const logger = pino();
 var port = parseInt(process.argv[2])
-
 var userAddedRatings = [] // used to demonstrate POST functionality
-
 var unavailable = false
 var healthy = true
 
@@ -109,14 +109,14 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
       connection.connect(function(err) {
           if (err) {
               res.end(JSON.stringify({error: 'could not connect to ratings database'}))
-              console.log(err)
+              logger.error(err, {trace_id: getTraceId(req.headers)})
               return
           }
           connection.query('SELECT Rating FROM ratings', function (err, results, fields) {
               if (err) {
                   res.writeHead(500, {'Content-type': 'application/json'})
                   res.end(JSON.stringify({error: 'could not perform select'}))
-                  console.log(err)
+                  logger.error(err, {trace_id: getTraceId(req.headers)})
               } else {
                   if (results[0]) {
                       firstRating = results[0].Rating
@@ -143,14 +143,14 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
         if (err) {
           res.writeHead(500, {'Content-type': 'application/json'})
           res.end(JSON.stringify({error: 'could not connect to ratings database'}))
-          console.log(err)
+          logger.error(err, {trace_id: getTraceId(req.headers)})
         } else {
           const db = client.db("test")
           db.collection('ratings').find({}).toArray(function (err, data) {
             if (err) {
               res.writeHead(500, {'Content-type': 'application/json'})
               res.end(JSON.stringify({error: 'could not load ratings from database'}))
-              console.log(err)
+              logger.error(err, {trace_id: getTraceId(req.headers)})
             } else {
               if (data[0]) {
                 firstRating = data[0].rating
@@ -249,6 +249,7 @@ function getLocalReviewsInternalServerError(res) {
   res.writeHead(500, {'Content-type': 'application/json'})
   res.end(JSON.stringify({error: 'Internal Server Error'}))
 }
+
 function getLocalReviews (productId) {
   if (typeof userAddedRatings[productId] !== 'undefined') {
       return userAddedRatings[productId]
@@ -262,24 +263,38 @@ function getLocalReviews (productId) {
   }
 }
 
+function getTraceId(headers) {
+  // Envoyの作成したtraceparent値を取得する
+  const traceparent = headers['traceparent'];
+  if (traceparent) {
+    // W3C Trace Context
+    // traceparent: 00-<trace_id>-<span_id>-01
+    const parts = traceparent.split('-');
+    if (parts.length >= 2) {
+      return parts[1];
+    }
+  }
+  return 'unknown';
+}
+
 function handleRequest (request, response) {
   try {
-    console.log(request.method + ' ' + request.url)
+    logger.info(request.method + ' ' + request.url, {trace_id: getTraceId(req.headers)})
     dispatcher.dispatch(request, response)
   } catch (err) {
-    console.log(err)
+    logger.error(err, {trace_id: getTraceId(req.headers)})
   }
 }
 
 var server = http.createServer(handleRequest)
 
 process.on('SIGTERM', function () {
-  console.log("SIGTERM received")
+  logger.info("SIGTERM received", {trace_id: getTraceId(req.headers)})
   server.close(function () {
     process.exit(0);
   });
 });
 
 server.listen(port, function () {
-  console.log('Server listening on: http://0.0.0.0:%s', port)
+  logger.info('Server listening on: http://0.0.0.0:' + port, {trace_id: getTraceId(req.headers)})
 })
