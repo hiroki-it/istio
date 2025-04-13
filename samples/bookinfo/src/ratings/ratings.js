@@ -45,7 +45,7 @@ if (process.env.SERVICE_VERSION === 'v-unhealthy') {
 /**
  * We default to using mongodb, if DB_TYPE is not set to mysql.
  */
-if (process.env.SERVICE_VERSION === 'v2') {
+if (process.env.SERVICE_VERSION === 'v2' || process.env.SERVICE_VERSION === 'v3') {
   if (process.env.DB_TYPE === 'mysql') {
     var mysql = require('mysql')
     var hostName = process.env.MYSQL_DB_HOST
@@ -77,7 +77,7 @@ dispatcher.onPost(/^\/ratings\/[0-9]*/, function (req, res) {
     return
   }
 
-  if (process.env.SERVICE_VERSION === 'v2') { // the version that is backed by a database
+  if (process.env.SERVICE_VERSION === 'v2' || process.env.SERVICE_VERSION === 'v3') { // the version that is backed by a database
     res.writeHead(501, {'Content-type': 'application/json'})
     res.end(JSON.stringify({error: 'Post not implemented for database backed ratings'}))
   } else { // the version that holds ratings in-memory
@@ -93,7 +93,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
   if (Number.isNaN(productId)) {
     res.writeHead(400, {'Content-type': 'application/json'})
     res.end(JSON.stringify({error: 'please provide numeric product ID'}))
-  } else if (process.env.SERVICE_VERSION === 'v2') {
+  } else if (process.env.SERVICE_VERSION === 'v2' || process.env.SERVICE_VERSION === 'v3') {
     var firstRating = 0
     var secondRating = 0
 

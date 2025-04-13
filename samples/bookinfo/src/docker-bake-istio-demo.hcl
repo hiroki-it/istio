@@ -28,6 +28,13 @@ images = [
   },
   // Ratings
   {
+    name = "examples-bookinfo-ratings-v3"
+    args = {
+      service_version = "v3"
+    }
+    source = "ratings"
+  },
+  {
     name = "examples-bookinfo-ratings-v-internal-server-error-500-50percent"
     args = {
       service_version = "v-internal-server-error-500-50percent"
