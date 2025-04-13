@@ -16,4 +16,7 @@ dependencies {
     providedCompile 'javax.enterprise.concurrent:javax.enterprise.concurrent-api:1.0'
     providedCompile 'javax.enterprise:cdi-api:1.2'
     providedCompile 'io.swagger:swagger-annotations:1.5.0'
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    implementation 'org.slf4j:slf4j-simple:2.0.17'
+    implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
 }

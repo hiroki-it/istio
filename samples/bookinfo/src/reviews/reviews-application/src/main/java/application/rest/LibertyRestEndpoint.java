@@ -34,6 +34,10 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
 @Path("/")
 public class LibertyRestEndpoint extends Application {
 
@@ -45,6 +49,7 @@ public class LibertyRestEndpoint extends Application {
     private final static String ratings_service = String.format("http://%s%s:%s/ratings", ratings_hostname, services_domain, ratings_port);
     private final static String pod_hostname = System.getenv("HOSTNAME");
     private final static String clustername = System.getenv("CLUSTER_NAME");
+    private static final Logger logger = LoggerFactory.getLogger(LibertyRestEndpoint.class);
     // HTTP headers to propagate for distributed tracing are documented at
     // https://istio.io/docs/tasks/telemetry/distributed-tracing/overview/#trace-context-propagation
     private final static String[] headers_to_propagate = {
@@ -153,6 +158,7 @@ public class LibertyRestEndpoint extends Application {
     @GET
     @Path("/health")
     public Response health() {
+        logger.info("reviews received health check.");
         return Response.ok().type(MediaType.APPLICATION_JSON).entity("{\"status\": \"Reviews is healthy\"}").build();
     }
 
@@ -161,6 +167,10 @@ public class LibertyRestEndpoint extends Application {
     public Response bookReviewsById(@PathParam("productId") int productId, @Context HttpHeaders requestHeaders) {
         int starsReviewer1 = -1;
         int starsReviewer2 = -1;
+
+        // トレースIDを取得してMDCに設定する
+        String traceId = getTraceId(requestHeaders);
+        MDC.put("trace_id", traceId);
 
         if (ratings_enabled) {
             ClientBuilder cb = ClientBuilder.newBuilder();
@@ -198,7 +208,7 @@ public class LibertyRestEndpoint extends Application {
                             }
                         }
                         String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
-                        System.out.println("Info: " + jsonResStr);
+                        logger.info(jsonResStr);
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
                 }
@@ -208,20 +218,37 @@ public class LibertyRestEndpoint extends Application {
                 String isConnectionPoolOverflow = r.getHeaderString("x-envoy-overloaded");
                 // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている
                 if ("true".equals(isConnectionPoolOverflow)){
-                    System.err.println("ERROR: Connection pool is overflowing.");
+                    logger.info("Connection pool is overflowing.");
                 }
-                System.err.println("ERROR: ["+  statusCode + "] Failed to get data from " + ratings_service);
+                logger.error("["+  statusCode + "] Failed to get data from " + ratings_service);
                 String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
                 return Response.status(statusCode).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
             
             } catch (ProcessingException e) {
-                System.err.println("ERROR: " + e.getMessage());
+                logger.error(e.getMessage());
                 // reviewsサービスの500ステータスコードは障害が理由のため、レビュー機能が利用できないこと伝えるメッセージとする
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"Sorry, product reviews are currently unavailable.\"}").build();
+            } finally {
+                MDC.clear();
             }
         }
 
         String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, 0);
         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
+    }
+
+    private String getTraceId(HttpHeaders headers) {
+    
+        // Envoyの作成したtraceparent値を取得する
+        String traceparent = headers.getHeaderString("traceparent");
+        if (traceparent != null) {
+            // W3C Trace Context
+            // traceparent: 00-<trace_id>-<span_id>-01
+            String[] parts = traceparent.split("-");
+            if (parts.length >= 2) {
+                return parts[1];
+           }
+        }
+        return "unknown";
     }
 }
