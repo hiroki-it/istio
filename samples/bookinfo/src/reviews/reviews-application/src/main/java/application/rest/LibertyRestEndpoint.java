@@ -119,10 +119,10 @@ public class LibertyRestEndpoint extends Application {
         }
         // ratingsサービスの503ステータスコードは高負荷やサーキットブレイカーなどが理由のため、レーティング機能が時間の経過で解決することを伝えるメッセージとする
         else if (statusCode == 503) {
-          result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently temporarily unavailable. Please try again later.\"}";
+          result += ", \"rating\": {\"error\": \"Sorry, product ratings are currently temporarily unavailable. Please try again later.\"}";
         }
         else {
-          result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently unavailable.\"}";
+          result += ", \"rating\": {\"error\": \"Sorry, product ratings are currently unavailable.\"}";
         }
       }
     	result += "},";
@@ -137,10 +137,10 @@ public class LibertyRestEndpoint extends Application {
         }
         // ratingsサービスの503ステータスコードは高負荷やサーキットブレイカーなどが理由のため、レーティング機能が時間の経過で解決することを伝えるメッセージとする
         else if (statusCode == 503) {
-          result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently temporarily unavailable. Please try again later.\"}";
+          result += ", \"rating\": {\"error\": \"Sorry, product ratings are currently temporarily unavailable. Please try again later.\"}";
         }
         else {
-          result += ", \"rating\": {\"error\": \"Sorry, product reviews are currently unavailable.\"}";
+          result += ", \"rating\": {\"error\": \"Sorry, product ratings are currently unavailable.\"}";
         }
       }
     	result += "}";
