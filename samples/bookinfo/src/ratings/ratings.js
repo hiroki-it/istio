@@ -221,7 +221,6 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
 })
 
 dispatcher.onGet('/health', function (req, res) {
-  logger.info("ratings received health check.")
     if (healthy) {
         res.writeHead(200, {'Content-type': 'application/json'})
         res.end(JSON.stringify({status: 'Ratings is healthy'}))

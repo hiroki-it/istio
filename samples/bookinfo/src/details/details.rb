@@ -45,7 +45,6 @@ trap 'INT' do
 end
 
 server.mount_proc '/health' do |req, res|
-    logger.info("details received health check.")
     res.status = 200
     res.body = {'status' => 'Details is healthy'}.to_json
     res['Content-Type'] = 'application/json'
