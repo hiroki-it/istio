@@ -4,7 +4,7 @@ GEM
     concurrent-ruby (1.3.5)
     semantic_logger (4.16.1)
       concurrent-ruby (~> 1.0)
-    webrick (1.8.2)
+    webrick (1.9.1)
 
 PLATFORMS
   aarch64-linux
@@ -13,7 +13,7 @@ PLATFORMS
 
 DEPENDENCIES
   semantic_logger (~> 4.16.1)
-  webrick (~> 1.7)
+  webrick (~> 1.9.1)
 
 BUNDLED WITH
    2.5.3
