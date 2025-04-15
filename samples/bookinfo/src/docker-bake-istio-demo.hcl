@@ -11,7 +11,11 @@ variable "PLATFORMS" {
 }
 
 images = [
-
+  // Productpage
+  {
+    name   = "examples-bookinfo-productpage-v2"
+    source = "productpage"
+  },
   // Reviews
   {
     name = "examples-bookinfo-reviews-v4"
@@ -22,7 +26,30 @@ images = [
     }
     source = "reviews"
   },
-
+  // Ratings
+  {
+    name = "examples-bookinfo-ratings-v3"
+    args = {
+      service_version = "v3"
+    }
+    source = "ratings"
+  },
+  {
+    name = "examples-bookinfo-ratings-v-internal-server-error-500-50percent"
+    args = {
+      service_version = "v-internal-server-error-500-50percent"
+    }
+    source = "ratings"
+  },
+  // Details
+  {
+    name = "examples-bookinfo-details-v3"
+    args = {
+      service_version              = "v3"
+      enable_external_book_service = true
+    }
+    source = "details"
+  },
 ]
 
 target "default" {
