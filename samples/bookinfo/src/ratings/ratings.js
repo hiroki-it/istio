@@ -91,7 +91,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
   var productId = parseInt(productIdStr)
 
   if (Number.isNaN(productId)) {
-    logger.error({trace_id: getTraceId(req.header)}, 'please provide numeric product ID')
+    logger.error({trace_id: getTraceId(req.headers)}, 'please provide numeric product ID')
     res.writeHead(400, {'Content-type': 'application/json'})
     res.end(JSON.stringify({error: 'please provide numeric product ID'}))
   } else if (process.env.SERVICE_VERSION === 'v2' || process.env.SERVICE_VERSION === 'v3') {
@@ -109,13 +109,13 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
 
       connection.connect(function(err) {
           if (err) {
-              logger.error({trace_id: getTraceId(req.header)}, err)
+              logger.error({trace_id: getTraceId(req.headers)}, err)
               res.end(JSON.stringify({error: 'could not connect to ratings database'}))
               return
           }
           connection.query('SELECT Rating FROM ratings', function (err, results, fields) {
               if (err) {
-                  logger.error({trace_id: getTraceId(req.header)}, err)
+                  logger.error({trace_id: getTraceId(req.headers)}, err)
                   res.writeHead(500, {'Content-type': 'application/json'})
                   res.end(JSON.stringify({error: 'could not perform select'}))
               } else {
@@ -143,14 +143,14 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
     } else {
       MongoClient.connect(url, function (err, client) {
         if (err) {
-          logger.error({trace_id: getTraceId(req.header)}, err)
+          logger.error({trace_id: getTraceId(req.headers)}, err)
           res.writeHead(500, {'Content-type': 'application/json'})
           res.end(JSON.stringify({error: 'could not connect to ratings database'}))
         } else {
           const db = client.db("test")
           db.collection('ratings').find({}).toArray(function (err, data) {
             if (err) {
-              logger.error({trace_id: getTraceId(req.header)}, err)
+              logger.error({trace_id: getTraceId(req.headers)}, err)
               res.writeHead(500, {'Content-type': 'application/json'})
               res.end(JSON.stringify({error: 'could not load ratings from database'}))
             } else {
@@ -285,12 +285,12 @@ function handleRequest (req, res) {
   try {
     // ヘルスチェックはロギングしない
     if (req.url != '/health') {
-      logger.info({trace_id: getTraceId(req.header)}, req.method + ' ' + req.url)
+      logger.info({trace_id: getTraceId(req.headers)}, req.method + ' ' + req.url)
     }
     dispatcher.dispatch(req, res)
   } catch (err) {
     if (req.url != '/health') {
-      logger.info({trace_id: getTraceId(req.header)}, err)
+      logger.info({trace_id: getTraceId(req.headers)}, err)
     }
   }
 }
