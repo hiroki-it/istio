@@ -19,7 +19,7 @@ require 'json'
 require 'net/http'
 require 'semantic_logger'
 
-# ログをフラッシュする
+# ログを溜めずにフラッシュする
 $stdout.sync = true
 
 SemanticLogger.add_appender(io: $stdout, formatter: :json)
