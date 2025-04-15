@@ -281,11 +281,17 @@ function getTraceId(headers) {
 }
 
 function handleRequest (req, res) {
+
   try {
-    logger.info({trace_id: getTraceId(req.header)},req.method + ' ' + req.url)
+    // ヘルスチェックはロギングしない
+    if (req.url != '/health') {
+      logger.info({trace_id: getTraceId(req.header)}, req.method + ' ' + req.url)
+    }
     dispatcher.dispatch(req, res)
   } catch (err) {
-    logger.error({trace_id: getTraceId(req.header)}, err)
+    if (req.url != '/health') {
+      logger.info({trace_id: getTraceId(req.header)}, err)
+    }
   }
 }
 
