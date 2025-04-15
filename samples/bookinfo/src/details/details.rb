@@ -36,6 +36,7 @@ server = WEBrick::HTTPServer.new(
     :BindAddress => '*',
     :Port => port,
     :AcceptCallback => -> (s) { s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1) },
+    :Logger => logger,
     :AccessLog => []
 )
 
