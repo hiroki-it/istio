@@ -32,7 +32,7 @@ end
 
 port = Integer(ARGV[0])
 
-logger.info("start at port #{port}")
+logger.info("Start at port #{port}")
 
 server = WEBrick::HTTPServer.new(
     :BindAddress => '*',
@@ -43,7 +43,7 @@ server = WEBrick::HTTPServer.new(
 )
 
 trap 'INT' do
-  logger.info("shutting down server")
+  logger.info("Shutting down server")
   server.shutdown
 end
 
@@ -64,7 +64,7 @@ server.mount_proc '/details' do |req, res|
           raise 'please provide numeric product id'
         end
         details = get_book_details(id, headers)
-        logger.info("get book details successfully.", trace_id: get_trace_id(headers))
+        logger.info("Get book details successfully", trace_id: get_trace_id(headers))
         res.body = details.to_json
         res['Content-Type'] = 'application/json'
     rescue => error

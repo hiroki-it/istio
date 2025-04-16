@@ -238,14 +238,14 @@ def health():
 
 @app.route('/login')
 def login():
-    logger.bind(trace_id=get_trace_id()).info("start to login.")
+    logger.bind(trace_id=get_trace_id()).info("Start to login")
     redirect_uri = url_for("callback", _external=True)
     redirectResponse = oauth.keycloak.authorize_redirect(redirect_uri)
     return redirectResponse
 
 @app.route("/callback")
 def callback():
-    logger.bind(trace_id=get_trace_id()).info("start to callback.")
+    logger.bind(trace_id=get_trace_id()).info("Start to callback")
     response = app.make_response(redirect(url_for('front', _external=True)))
 
     try:
@@ -264,7 +264,7 @@ def callback():
 
 @app.route('/logout')
 def logout():
-    logger.bind(trace_id=get_trace_id()).info("start to logout.")
+    logger.bind(trace_id=get_trace_id()).info("Start to logout")
     # Keycloakからログアウトし、productpageにリダイレクトする
     redirect_uri = ("http://localhost:8080/realms/dev/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s" % (session.get('id_token', ''), url_for("front", _external=True)))
     session.pop('id_token', None)
@@ -305,18 +305,18 @@ def front():
 
     # detailsサービスにリクエストを送信する
     detailsStatus, details = getProductDetails(product_id, headers)
-    logger.bind(trace_id=get_trace_id()).info("[" + str(detailsStatus) + "] details response is " + str(details))
+    logger.bind(trace_id=get_trace_id()).info("[" + str(detailsStatus) + "] Details response is " + str(details))
 
     if flood_factor > 0:
         floodReviews(product_id, headers)
 
     # reviewsサービスにリクエストを送信する
     reviewsStatus, reviews = getProductReviews(product_id, headers)
-    logger.bind(trace_id=get_trace_id()).info("[" + str(reviewsStatus) + "] reviews response is " + str(reviews))
+    logger.bind(trace_id=get_trace_id()).info("[" + str(reviewsStatus) + "] Reviews response is " + str(reviews))
 
     # いずれかのマイクロサービスでアクセストークンの検証が失敗し、401ステータスが返信された場合、ログアウトする
     if detailsStatus == 401 or reviewsStatus == 401:
-        logger.bind(trace_id=get_trace_id()).info("[" + str(401) + "] access token is invalid.")
+        logger.bind(trace_id=get_trace_id()).info("[" + str(401) + "] Access token is invalid")
         redirect_uri = url_for('logout', _external=True)
         return redirect(redirect_uri)
 
@@ -491,11 +491,11 @@ class Writer(object):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        logger.error("usage: %s port" % (sys.argv[0]))
+        logger.error("Usage: %s port" % (sys.argv[0]))
         sys.exit(-1)
 
     p = int(sys.argv[1])
-    logger.info("start at port %s" % (p))
+    logger.info("Start at port %s" % (p))
     # Make it compatible with IPv6 if Linux
     if sys.platform == "linux":
         app.run(host='::', port=p, debug=False, threaded=True)

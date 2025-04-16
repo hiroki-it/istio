@@ -91,9 +91,9 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
   var productId = parseInt(productIdStr)
 
   if (Number.isNaN(productId)) {
-    logger.error({trace_id: getTraceId(req.headers)}, 'please provide numeric product ID')
+    logger.error({trace_id: getTraceId(req.headers)}, 'Please provide numeric product ID')
     res.writeHead(400, {'Content-type': 'application/json'})
-    res.end(JSON.stringify({error: 'please provide numeric product ID'}))
+    res.end(JSON.stringify({error: 'Please provide numeric product ID'}))
   } else if (process.env.SERVICE_VERSION === 'v2' || process.env.SERVICE_VERSION === 'v3') {
     var firstRating = 0
     var secondRating = 0
@@ -132,7 +132,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
                           Reviewer2: secondRating
                       }
                   }
-                  logger.info({trace_id: getTraceId(req.headers)}, "get rating successfully.")
+                  logger.info({trace_id: getTraceId(req.headers)}, "Get rating successfully")
                   res.writeHead(200, {'Content-type': 'application/json'})
                   res.end(JSON.stringify(result))
               }
@@ -145,7 +145,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
         if (err) {
           logger.error({trace_id: getTraceId(req.headers)}, err)
           res.writeHead(500, {'Content-type': 'application/json'})
-          res.end(JSON.stringify({error: 'could not connect to ratings database'}))
+          res.end(JSON.stringify({error: 'Could not connect to ratings database'}))
         } else {
           const db = client.db("test")
           db.collection('ratings').find({}).toArray(function (err, data) {
@@ -167,7 +167,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
                   Reviewer2: secondRating
                 }
               }
-              logger.info({trace_id: getTraceId(req.headers)}, "get rating successfully.")
+              logger.info({trace_id: getTraceId(req.headers)}, "Get rating successfully")
               res.writeHead(200, {'Content-type': 'application/json'})
               res.end(JSON.stringify(result))
             }

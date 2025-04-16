@@ -217,7 +217,7 @@ public class LibertyRestEndpoint extends Application {
                 String isConnectionPoolOverflow = r.getHeaderString("x-envoy-overloaded");
                 // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている
                 if ("true".equals(isConnectionPoolOverflow)){
-                    logger.info("Connection pool is overflowing.");
+                    logger.info("Connection pool is overflowing");
                 }
                 logger.error("["+  statusCode + "] Failed to get data from " + ratings_service);
                 String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
