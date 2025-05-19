@@ -122,7 +122,8 @@ public class LibertyRestEndpoint extends Application {
         if (starsReviewer1 != -1) {
           result += ", \"rating\": {\"stars\": " + starsReviewer1 + ", \"color\": \"" + star_color + "\"}";
         }
-        // ratingsサービスの503ステータスコードは高負荷やサーキットブレイカーなどが理由のため、レーティング機能が時間の経過で解決することを伝えるメッセージとする
+        // フォールバック
+        // ratingsサービスの503ステータスコードは信頼性パターンの発動が理由のため、時間の経過で解決することを伝えるメッセージとする
         else if (statusCode == 503) {
           result += ", \"rating\": {\"error\": \"Sorry, product ratings are currently temporarily unavailable. Please try again later.\"}";
         }
