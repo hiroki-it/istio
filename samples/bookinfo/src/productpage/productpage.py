@@ -400,19 +400,19 @@ def getProductDetails(product_id, headers):
         logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
         res = None
     if res and res.status_code == 200:
-        request_result_counter.labels(destination_app='details', response_code=200).inc()
-        return 200, res.json()
+        request_result_counter.labels(destination_app='details', response_code=res.status_code).inc()
+        return res.status_code, res.json()
     elif res is not None and res.status_code == 403:
-        request_result_counter.labels(destination_app='details', response_code=403).inc()
-        return 403, {'error': 'Please sign in to view product details.'}
-    elif res is not None and res.status_code == 503:
-        request_result_counter.labels(destination_app='details', response_code=503).inc()
+        request_result_counter.labels(destination_app='details', response_code=res.status_code).inc()
+        return res.status_code, {'error': 'Please sign in to view product details.'}
+    elif res is not None and (res.status_code == 503  or res.status_code == 504):
+        request_result_counter.labels(destination_app='details', response_code=res.status_code).inc()
         try:
-          return 503, res.json()
+          return res.status_code, res.json()
         except BaseException as e:
           logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
-          # detailsサービスが503ステータスでJSONデータがない場合
-          return 503, {'error': 'Sorry, product details are currently unavailable.'}
+          # detailsサービスが503または504ステータスでJSONデータがない場合
+          return res.status_code, {'error': 'Sorry, product details are currently unavailable.'}
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='details', response_code=status).inc()
@@ -427,19 +427,19 @@ def getProductReviews(product_id, headers):
         logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
         res = None
     if res and res.status_code == 200:
-        request_result_counter.labels(destination_app='reviews', response_code=200).inc()
-        return 200, res.json()
+        request_result_counter.labels(destination_app='reviews', response_code=res.status_code).inc()
+        return res.status_code, res.json()
     elif res is not None and res.status_code == 403:
-        request_result_counter.labels(destination_app='reviews', response_code=403).inc()
-        return 403, {'error': 'Please sign in to view product reviews.'}
-    elif res is not None and res.status_code == 503:
-        request_result_counter.labels(destination_app='reviews', response_code=503).inc()
+        request_result_counter.labels(destination_app='reviews', response_code=res.status_code).inc()
+        return res.status_code, {'error': 'Please sign in to view product reviews.'}
+    elif res is not None and (res.status_code == 503  or res.status_code == 504):
+        request_result_counter.labels(destination_app='reviews', response_code=res.status_code).inc()
         try:
-          return 503, res.json()
+          return res.status_code, res.json()
         except BaseException as e:
           logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
-          # reviewsサービスが503ステータスでJSONデータがない場合
-          return 503, {'error': 'Sorry, product reviews are currently unavailable.'}
+          # reviewsサービスが503または504ステータスでJSONデータがない場合
+          return res.status_code, {'error': 'Sorry, product reviews are currently unavailable.'}
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='reviews', response_code=status).inc()
@@ -454,19 +454,19 @@ def getProductRatings(product_id, headers):
         logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
         res = None
     if res and res.status_code == 200:
-        request_result_counter.labels(destination_app='ratings', response_code=200).inc()
-        return 200, res.json()
+        request_result_counter.labels(destination_app='ratings', response_code=res.status_code).inc()
+        return res.status_code, res.json()
     elif res is not None and res.status_code == 403:
-        request_result_counter.labels(destination_app='ratings', response_code=403).inc()
-        return 403, {'error': 'Please sign in to view product ratings.'}
-    elif res is not None and res.status_code == 503:
-        request_result_counter.labels(destination_app='ratings', response_code=503).inc()
+        request_result_counter.labels(destination_app='ratings', response_code=res.status_code).inc()
+        return res.status_code, {'error': 'Please sign in to view product ratings.'}
+    elif res is not None and (res.status_code == 503  or res.status_code == 504):
+        request_result_counter.labels(destination_app='ratings', response_code=res.status_code).inc()
         try:
-          return 503, res.json()
+          return res.status_code, res.json()
         except BaseException as e:
           logger.bind(trace_id=get_trace_id()).error(f"{repr(e)}")
-          # ratingsサービスが503ステータスでJSONデータがない場合
-          return 503, {'error': 'Sorry, product ratings are currently unavailable.'}
+          # ratingsサービスが503または504ステータスでJSONデータがない場合
+          return res.status_code, {'error': 'Sorry, product ratings are currently unavailable.'}
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='ratings', response_code=status).inc()
