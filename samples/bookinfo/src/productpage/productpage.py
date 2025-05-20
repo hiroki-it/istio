@@ -264,6 +264,11 @@ def callback():
 
 @app.route('/logout')
 def logout():
+
+    # LOGGED_INのフラグを有効化した場合、ログアウトを無効にする
+    if os.getenv('LOGGED_IN', 'False'):
+        return app.make_response(redirect(url_for('front', _external=True)))
+
     logger.bind(trace_id=get_trace_id()).info("Start to logout")
     # Keycloakからログアウトし、productpageにリダイレクトする
     redirect_uri = ("http://localhost:8080/realms/dev/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s" % (session.get('id_token', ''), url_for("front", _external=True)))
