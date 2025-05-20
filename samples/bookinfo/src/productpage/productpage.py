@@ -299,6 +299,11 @@ def floodReviews(product_id, headers):
 @app.route('/productpage')
 def front():
     product_id = 0  # TODO: replace default value
+    
+    # LOGGED_INのフラグを有効化した場合、最初からログイン済みにする
+    if os.getenv('LOGGED_IN', 'False'):
+        session['user'] = 'izzy'
+
     headers = getForwardHeaders(request)
     user = session.get('user', '')
     product = getProduct(product_id)
