@@ -123,8 +123,8 @@ public class LibertyRestEndpoint extends Application {
           result += ", \"rating\": {\"stars\": " + starsReviewer1 + ", \"color\": \"" + star_color + "\"}";
         }
         // フォールバック
-        // ratingsサービスの503ステータスコードは信頼性パターンの発動が理由のため、時間の経過で解決することを伝えるメッセージとする
-        else if (statusCode == 503) {
+        // ratingsサービスの503または504ステータスコードは信頼性パターンの発動が理由のため、時間の経過で解決することを伝えるメッセージとする
+        else if (statusCode == 503 || statusCode == 504) {
           result += ", \"rating\": {\"error\": \"Sorry, product ratings are currently temporarily unavailable. Please try again later.\"}";
         }
         else {
@@ -141,8 +141,9 @@ public class LibertyRestEndpoint extends Application {
         if (starsReviewer2 != -1) {
           result += ", \"rating\": {\"stars\": " + starsReviewer2 + ", \"color\": \"" + star_color + "\"}";
         }
-        // ratingsサービスの503ステータスコードは高負荷やサーキットブレイカーなどが理由のため、レーティング機能が時間の経過で解決することを伝えるメッセージとする
-        else if (statusCode == 503) {
+        // フォールバック
+        // ratingsサービスの503または504ステータスコードは信頼性パターンの発動が理由のため、時間の経過で解決することを伝えるメッセージとするーなどが理由のため、レーティング機能が時間の経過で解決することを伝えるメッセージとする
+        else if (statusCode == 503 || statusCode == 504) {
           result += ", \"rating\": {\"error\": \"Sorry, product ratings are currently temporarily unavailable. Please try again later.\"}";
         }
         else {
