@@ -175,7 +175,8 @@ public class LibertyRestEndpoint extends Application {
 
         if (ratings_enabled) {
             ClientBuilder cb = ClientBuilder.newBuilder();
-            Integer timeout = star_color.equals("black") ? 10000 : 2500;
+            // Istioでもタイムアウトを実装するため、マイクロサービス側ではタイムアウト値を長くしておく
+            Integer timeout = 15000;
             cb.property("com.ibm.ws.jaxrs.client.connection.timeout", timeout);
             cb.property("com.ibm.ws.jaxrs.client.receive.timeout", timeout);
             Client client = cb.build();
