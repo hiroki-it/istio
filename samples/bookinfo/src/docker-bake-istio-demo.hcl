@@ -35,9 +35,9 @@ images = [
     source = "ratings"
   },
   {
-    name = "examples-bookinfo-ratings-v-internal-server-error-500-50percent"
+    name = "examples-bookinfo-ratings-v-50percent-internal-server-error-500"
     args = {
-      service_version = "v-internal-server-error-500-50percent"
+      service_version = "v-50percent-internal-server-error-500"
     }
     source = "ratings"
   },
