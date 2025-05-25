@@ -266,7 +266,7 @@ def callback():
 def logout():
 
     # LOGGED_INのフラグを有効化した場合、ログアウトを無効にする
-    if os.getenv('LOGGED_IN', 'False'):
+    if os.getenv('LOGGED_IN', 'False') == 'True':
         return app.make_response(redirect(url_for('front', _external=True)))
 
     logger.bind(trace_id=get_trace_id()).info("Start to logout")
@@ -306,7 +306,7 @@ def front():
     product_id = 0  # TODO: replace default value
     
     # LOGGED_INのフラグを有効化した場合、最初からログイン済みにする
-    if os.getenv('LOGGED_IN', 'False'):
+    if os.getenv('LOGGED_IN', 'False') == 'True':
         session['user'] = 'izzy'
 
     headers = getForwardHeaders(request)
