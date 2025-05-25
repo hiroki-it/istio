@@ -110,6 +110,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
       connection.connect(function(err) {
           if (err) {
               logger.error({trace_id: getTraceId(req.headers)}, err)
+              res.writeHead(500, {'Content-type': 'application/json'})
               res.end(JSON.stringify({error: 'could not connect to ratings database'}))
               return
           }
