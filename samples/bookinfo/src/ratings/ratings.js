@@ -290,7 +290,7 @@ function handleRequest (req, res) {
     dispatcher.dispatch(req, res)
   } catch (err) {
     if (req.url != '/health') {
-      logger.info({trace_id: getTraceId(req.headers)}, err)
+      logger.error({trace_id: getTraceId(req.headers)}, err)
     }
   }
 }
