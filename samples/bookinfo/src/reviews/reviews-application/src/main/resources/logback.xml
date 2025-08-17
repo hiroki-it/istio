@@ -1,15 +1,15 @@
 <configuration>
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-      <!-- 不要なフィールドを削除する -->
-      <includeLoggerName>false</includeLoggerName>        
-      <includeThreadName>false</includeThreadName>        
-      <includeLevelValue>false</includeLevelValue>        
-      <includeVersion>false</includeVersion>  
-      <!-- フィールド名を変更する -->
-      <timestamp>
-        <fieldName>timestamp</fieldName>
-      </timestamp>            
+      <fieldNames>
+        <!-- 不要なフィールドを削除する -->
+        <logger>[ignore]</logger>          
+        <thread>[ignore]</thread>          
+        <levelValue>[ignore]</levelValue>  
+        <version>[ignore]</version>        
+         <!-- フィールド名を変更する -->
+        <timestamp>timestamp</timestamp>   
+      </fieldNames>            
     </encoder>
   </appender>
 

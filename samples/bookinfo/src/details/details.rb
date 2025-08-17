@@ -38,7 +38,7 @@ SemanticLogger.add_appender(
       record.merge!(log.payload.transform_keys!(&:to_s))
     end
 
-    JSON.generate(record) << "\n"
+    JSON.generate(record)
   }
 )
 
