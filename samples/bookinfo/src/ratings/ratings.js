@@ -17,12 +17,14 @@ var dispatcher = require('httpdispatcher')
 const pino = require('pino');
 
 let logger = pino({
+  // 不要なフィールドを削除する
+  base: null,               
+  messageKey: 'message',                    
+  timestamp: pino.stdTimeFunctions.isoTime, 
   formatters: {
-    // ログのレベルを文字列に変換する
+    // ログのレベル番号を文字列に変換する
     level(label) {
-      return { 
-        level: label 
-      }; 
+      return { level: label };              
     }
   }
 });
