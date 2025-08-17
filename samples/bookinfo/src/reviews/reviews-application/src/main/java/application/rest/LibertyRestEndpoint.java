@@ -20,6 +20,7 @@ import java.io.StringReader;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -165,7 +166,7 @@ public class LibertyRestEndpoint extends Application {
 
     @GET
     @Path("/reviews/{productId}")
-    public Response bookReviewsById(@PathParam("productId") int productId, @Context HttpHeaders requestHeaders) {
+    public Response bookReviewsById(@PathParam("productId") int productId, @Context HttpHeaders requestHeaders, @Context HttpServletRequest request) {
         int starsReviewer1 = -1;
         int starsReviewer2 = -1;
 
@@ -212,6 +213,8 @@ public class LibertyRestEndpoint extends Application {
                         String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
                         logger.info("Get ratings successfully");
                         MDC.put("status", String.valueOf(statusCode));
+                        MDC.put("method", request.getMethod());
+                        MDC.put("path", request.getPathInfo());
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
                 }
@@ -225,6 +228,8 @@ public class LibertyRestEndpoint extends Application {
                 }
                 logger.error("Failed to get ratings");
                 MDC.put("status", String.valueOf(statusCode));
+                MDC.put("method", request.getMethod());
+                MDC.put("path", request.getPathInfo());
                 String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
                 return Response.status(statusCode).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
             
