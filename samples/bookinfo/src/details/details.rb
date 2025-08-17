@@ -85,7 +85,6 @@ server.mount_proc '/details' do |req, res|
         end
         details = get_book_details(id, headers)
         res.body = details.to_json
-        logger.info("Get book details successfully", status: res.status, trace_id: trace_id)
         res['Content-Type'] = 'application/json'
     rescue => error
         logger.error("Failed to get book details: #{error.message}", trace_id: trace_id)
@@ -134,18 +133,25 @@ def fetch_details_from_external_service(isbn, id, headers)
 
     request = Net::HTTP::Get.new(uri.request_uri)
     headers.each { |header, value| request[header] = value }
+    trace_id = get_trace_id(headers)
 
-    response = http.request(request)
-
-    json = JSON.parse(response.body)
-    book = json['items'][0]['volumeInfo']
-
-    language = book['language'] === 'en'? 'English' : 'unknown'
-    type = book['printType'] === 'BOOK'? 'paperback' : 'unknown'
-    isbn10 = get_isbn(book, 'ISBN_10')
-    isbn13 = get_isbn(book, 'ISBN_13')
-
-    return {
+    begin
+      response = http.request(request)
+      status_code = response.code.to_i
+    rescue => error
+      logger.error("Failed to get book details: #{error.message}", status: status_code, trace_id: trace_id
+      return {}
+    end
+    
+    if status_code >= 200 && status_code < 300
+      json = JSON.parse(response.body)
+      book = json['items'][0]['volumeInfo']
+      language = book['language'] === 'en'? 'English' : 'unknown'
+      type = book['printType'] === 'BOOK'? 'paperback' : 'unknown'
+      isbn10 = get_isbn(book, 'ISBN_10')
+      isbn13 = get_isbn(book, 'ISBN_13')
+      logger.info("Get book details successfully", status: status_code, trace_id: trace_id)
+      return {
         'id' => id,
         'author': book['authors'][0],
         'year': book['publishedDate'],
@@ -155,8 +161,17 @@ def fetch_details_from_external_service(isbn, id, headers)
         'language' => language,
         'ISBN-10' => isbn10,
         'ISBN-13' => isbn13
-    }
-
+      }
+    elsif status_code == 404
+      logger.info("Book details is not found", status: status_code, trace_id: trace_id)
+      return {}
+    elsif status_code >= 500
+      logger.error("Failed to get book details", status: status_code, trace_id: trace_id)
+      return {}
+    else
+      logger.error("Failed to get book details", status: status_code, trace_id: trace_id)
+      return {}
+    end
 end
 
 def get_isbn(book, isbn_type)
