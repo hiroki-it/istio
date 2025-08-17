@@ -120,14 +120,14 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
 
       connection.connect(function(err) {
           if (err) {
-              logger.error({trace_id: traceId}, err)
+              logger.error({trace_id: traceId}, "Failed to connect to ratings database: " + err)
               res.writeHead(500, {'Content-type': 'application/json'})
               res.end(JSON.stringify({error: 'could not connect to ratings database'}))
               return
           }
           connection.query('SELECT Rating FROM ratings', function (err, results, fields) {
               if (err) {
-                  logger.error({trace_id: traceId}, err)
+                  logger.error({trace_id: traceId, status: 500}, "Failed to perform select: " + err)
                   res.writeHead(500, {'Content-type': 'application/json'})
                   res.end(JSON.stringify({error: 'could not perform select'}))
               } else {
@@ -155,14 +155,14 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
     } else {
       MongoClient.connect(url, function (err, client) {
         if (err) {
-          logger.error({trace_id: traceId}, err)
+          logger.error({trace_id: traceId}, "Failed to connect to ratings database: " + err)
           res.writeHead(500, {'Content-type': 'application/json'})
           res.end(JSON.stringify({error: 'Could not connect to ratings database'}))
         } else {
           const db = client.db("test")
           db.collection('ratings').find({}).toArray(function (err, data) {
             if (err) {
-              logger.error({trace_id: traceId}, err)
+              logger.error({trace_id: traceId, status: 500}, "Failed to load ratings from database: " + err)
               res.writeHead(500, {'Content-type': 'application/json'})
               res.end(JSON.stringify({error: 'could not load ratings from database'}))
             } else {
@@ -251,6 +251,7 @@ function putLocalReviews (productId, ratings) {
 }
 
 function getLocalReviewsSuccessful(res, productId) {
+  logger.info({trace_id: traceId, status: 200}, "Get ratings successfully")
   res.writeHead(200, {'Content-type': 'application/json'})
   res.end(JSON.stringify(getLocalReviews(productId)))
 }
@@ -303,7 +304,7 @@ function handleRequest (req, res) {
     dispatcher.dispatch(req, res)
   } catch (err) {
     if (req.url != '/health') {
-      logger.error({trace_id: traceId}, err)
+      logger.error({trace_id: traceId}, "Failed to handle request: " + err)
     }
   }
 }
