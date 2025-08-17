@@ -18,15 +18,15 @@ const pino = require('pino');
 
 let logger = pino({
   // 不要なフィールドを削除する
-  base: null,               
+  base: null, 
   // フィールド名を変更する
-  messageKey: 'message',       
-  // タイムスタンプの形式を変更する             
-  timestamp: pino.stdTimeFunctions.isoTime, 
+  messageKey: 'message',
+  // タイムスタンプの形式を変更する
+  timestamp: pino.stdTimeFunctions.isoTime,
   formatters: {
     // ログのレベル番号を文字列に変換する
     level(label) {
-      return { level: label };              
+      return { level: label };
     }
   }
 });

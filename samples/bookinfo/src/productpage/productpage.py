@@ -57,6 +57,7 @@ logger.remove()
 logger.add(
     lambda message: print(
         json.dumps({
+            # タイムスタンプの形式を変更する
             "timestamp": message.record["time"].isoformat(),
             "level": message.record["level"].name,
             "message": message.record["message"],
