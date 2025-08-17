@@ -239,7 +239,7 @@ def health():
 @app.route('/login')
 def login():
     trace_id=get_trace_id()
-    logger.bind(trace_id).info("Start to login")
+    logger.bind(trace_id=trace_id).info("Start to login")
     redirect_uri = url_for("callback", _external=True)
 
     try:
