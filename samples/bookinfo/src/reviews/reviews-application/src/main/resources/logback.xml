@@ -5,7 +5,11 @@
       <includeLoggerName>false</includeLoggerName>        
       <includeThreadName>false</includeThreadName>        
       <includeLevelValue>false</includeLevelValue>        
-      <includeVersion>false</includeVersion>              
+      <includeVersion>false</includeVersion>  
+      <!-- フィールド名を変更する -->
+      <timestamp>
+        <fieldName>timestamp</fieldName>
+      </timestamp>            
     </encoder>
   </appender>
 
