@@ -21,6 +21,7 @@ let logger = pino({
   base: null, 
   // フィールド名を変更する
   messageKey: 'message',
+  timeKey: 'timestamp',
   // タイムスタンプの形式を変更する
   timestamp: pino.stdTimeFunctions.isoTime,
   formatters: {
