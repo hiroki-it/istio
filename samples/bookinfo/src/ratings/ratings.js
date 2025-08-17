@@ -16,7 +16,17 @@ var http = require('http')
 var dispatcher = require('httpdispatcher')
 const pino = require('pino');
 
-let logger = pino();
+let logger = pino({
+  formatters: {
+    // ログのレベルを文字列に変換する
+    level(label) {
+      return { 
+        level: label 
+      }; 
+    }
+  }
+});
+
 var port = parseInt(process.argv[2])
 var userAddedRatings = [] // used to demonstrate POST functionality
 var unavailable = false
