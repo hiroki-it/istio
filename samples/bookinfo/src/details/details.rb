@@ -139,7 +139,7 @@ def fetch_details_from_external_service(isbn, id, headers)
       response = http.request(request)
       status_code = response.code.to_i
     rescue => error
-      logger.error("Failed to get book details: #{error.message}", status: status_code, trace_id: trace_id
+      logger.error("Failed to get book details: #{error.message}", trace_id: trace_id)
       return {}
     end
     

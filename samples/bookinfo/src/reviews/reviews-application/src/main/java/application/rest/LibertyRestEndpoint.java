@@ -211,10 +211,10 @@ public class LibertyRestEndpoint extends Application {
                             }
                         }
                         String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
-                        logger.info("Get ratings successfully");
                         MDC.put("status", String.valueOf(statusCode));
                         MDC.put("method", request.getMethod());
                         MDC.put("path", request.getPathInfo());
+                        logger.info("Get ratings successfully");
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
                 }
@@ -222,14 +222,14 @@ public class LibertyRestEndpoint extends Application {
                 // コネクションプールの状態を表すヘッダーをレスポンスから取得する
                 // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
                 String isConnectionPoolOverflow = r.getHeaderString("x-envoy-overloaded");
+                MDC.put("status", String.valueOf(statusCode));
+                MDC.put("method", request.getMethod());
+                MDC.put("path", request.getPathInfo());
                 // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている
                 if ("true".equals(isConnectionPoolOverflow)){
                     logger.info("Connection pool is overflowing");
                 }
                 logger.error("Failed to get ratings");
-                MDC.put("status", String.valueOf(statusCode));
-                MDC.put("method", request.getMethod());
-                MDC.put("path", request.getPathInfo());
                 String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
                 return Response.status(statusCode).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
             
