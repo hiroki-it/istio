@@ -20,7 +20,6 @@ import java.io.StringReader;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -181,7 +180,8 @@ public class LibertyRestEndpoint extends Application {
             cb.property("com.ibm.ws.jaxrs.client.connection.timeout", timeout);
             cb.property("com.ibm.ws.jaxrs.client.receive.timeout", timeout);
             Client client = cb.build();
-            WebTarget ratingsTarget = client.target(ratings_service + "/" + productId);
+            String url = ratings_service + "/" + productId;
+            WebTarget ratingsTarget = client.target(url);
             Invocation.Builder builder = ratingsTarget.request(MediaType.APPLICATION_JSON);
             for (String header : headers_to_propagate) {
                 String value = requestHeaders.getHeaderString(header);
@@ -212,8 +212,8 @@ public class LibertyRestEndpoint extends Application {
                         }
                         String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
                         MDC.put("status", String.valueOf(statusCode));
-                        MDC.put("method", request.getMethod());
-                        MDC.put("path", request.getPathInfo());
+                        MDC.put("method", "GET");
+                        MDC.put("path", url);
                         logger.info("Get ratings successfully");
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
@@ -223,8 +223,8 @@ public class LibertyRestEndpoint extends Application {
                 // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
                 String isConnectionPoolOverflow = r.getHeaderString("x-envoy-overloaded");
                 MDC.put("status", String.valueOf(statusCode));
-                MDC.put("method", request.getMethod());
-                MDC.put("path", request.getPathInfo());
+                MDC.put("method", "GET");
+                MDC.put("path", url);
                 // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている
                 if ("true".equals(isConnectionPoolOverflow)){
                     logger.info("Connection pool is overflowing");
