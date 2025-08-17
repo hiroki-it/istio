@@ -210,7 +210,7 @@ public class LibertyRestEndpoint extends Application {
                             }
                         }
                         String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
-                        logger.info(jsonResStr);
+                        logger.info("Get ratings successfully");
                         MDC.put("status", String.valueOf(statusCode));
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
