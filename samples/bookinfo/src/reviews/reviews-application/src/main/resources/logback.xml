@@ -3,7 +3,7 @@
     <encoder class="net.logstash.logback.encoder.LogstashEncoder">
       <fieldNames>
         <!-- 不要なフィールドを削除する -->
-        <logger>[ignore]</logger>          
+        <loggerName>[ignore]</loggerName>          
         <thread>[ignore]</thread>          
         <levelValue>[ignore]</levelValue>  
         <version>[ignore]</version>        
