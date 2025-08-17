@@ -1,9 +1,15 @@
 <configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
-    </appender>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <!-- 不要なフィールドを削除する -->
+      <includeLoggerName>false</includeLoggerName>        
+      <includeThreadName>false</includeThreadName>        
+      <includeLevelValue>false</includeLevelValue>        
+      <includeVersion>false</includeVersion>              
+    </encoder>
+  </appender>
 
-    <root level="info">
-        <appender-ref ref="STDOUT" />
-    </root>
+  <root level="info">
+    <appender-ref ref="STDOUT"/>
+  </root>
 </configuration>

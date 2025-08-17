@@ -22,7 +22,26 @@ require 'semantic_logger'
 # ログをメモリ上に保管せずにフラッシュする
 $stdout.sync = true
 
-SemanticLogger.add_appender(io: $stdout, formatter: :json)
+SemanticLogger.add_appender(
+  io: $stdout,
+  formatter: -> log, logger {
+    record = SemanticLogger::Formatters::Json.new.call(log, logger)
+
+    # 不要なログフィールドを削除する
+    record.delete(:level_index)
+    record.delete(:name)
+    record.delete(:pid)
+    record.delete(:thread)
+
+    # payloadフィールドを展開する
+    if (payload = record.delete(:payload)).is_a?(Hash)
+      record.merge!(payload)
+    end
+
+    JSON.generate(record)
+  }
+)
+
 logger = SemanticLogger['Details']
 
 if ARGV.length < 1 then

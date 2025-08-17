@@ -60,6 +60,7 @@ logger.add(
             "timestamp": message.record["time"].isoformat(),
             "level": message.record["level"].name,
             "message": message.record["message"],
+            # extraフィールドを展開する
             **message.record["extra"],
         }),
         file=sys.stdout,
