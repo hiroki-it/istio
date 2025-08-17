@@ -55,10 +55,16 @@ oauth.register(
 # loguruの設定
 logger.remove() 
 logger.add(
-    sys.stdout,
-    format="{time} {level} {extra[trace_id]} {message}", 
-    # 構造化ログ
-    serialize=True 
+    lambda message: print(
+        json.dumps({
+            "timestamp": message.record["time"].isoformat(),
+            "level": message.record["level"].name,
+            "message": message.record["message"],
+            **message.record["extra"],
+        }),
+        file=sys.stdout,
+        flush=True
+    )
 )
 
 # Set the secret key to some random bytes. Keep this really secret!
