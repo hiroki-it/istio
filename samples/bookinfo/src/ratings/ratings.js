@@ -131,7 +131,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
           }
           connection.query('SELECT Rating FROM ratings', function (err, results, fields) {
               if (err) {
-                  logger.error({trace_id: traceId, status: 500}, "Failed to perform select: " + err)
+                  logger.error({method: req.method, status: 500, trace_id: traceId}, "Failed to perform select: " + err)
                   res.writeHead(500, {'Content-type': 'application/json'})
                   res.end(JSON.stringify({error: 'could not perform select'}))
               } else {
@@ -148,7 +148,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
                           Reviewer2: secondRating
                       }
                   }
-                  logger.info({trace_id: traceId, status: 200}, "Get ratings successfully")
+                  logger.info({method: req.method, status: 200, trace_id: traceId}, "Get ratings successfully: " + req.method + ' ' + req.url)
                   res.writeHead(200, {'Content-type': 'application/json'})
                   res.end(JSON.stringify(result))
               }
@@ -166,7 +166,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
           const db = client.db("test")
           db.collection('ratings').find({}).toArray(function (err, data) {
             if (err) {
-              logger.error({trace_id: traceId, status: 500}, "Failed to load ratings from database: " + err)
+              logger.error({method: req.method, status: 500, trace_id: traceId}, "Failed to load ratings from database: " + err)
               res.writeHead(500, {'Content-type': 'application/json'})
               res.end(JSON.stringify({error: 'could not load ratings from database'}))
             } else {
@@ -183,7 +183,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
                   Reviewer2: secondRating
                 }
               }
-              logger.info({trace_id: traceId, status: 200}, "Get ratings successfully")
+              logger.info({method: req.method, path: req.url, status: 200, trace_id: traceId}, "Get ratings successfully")
               res.writeHead(200, {'Content-type': 'application/json'})
               res.end(JSON.stringify(result))
             }
@@ -239,10 +239,10 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
 dispatcher.onGet('/health', function (req, res) {
     if (healthy) {
         res.writeHead(200, {'Content-type': 'application/json'})
-        res.end(JSON.stringify({status: 'Ratings is healthy'}))
+        res.end(JSON.stringify({message: 'Ratings is healthy'}))
     } else {
         res.writeHead(500, {'Content-type': 'application/json'})
-        res.end(JSON.stringify({status: 'Ratings is not healthy'}))
+        res.end(JSON.stringify({message: 'Ratings is not healthy'}))
     }
 })
 
@@ -255,7 +255,7 @@ function putLocalReviews (productId, ratings) {
 }
 
 function getLocalReviewsSuccessful(res, productId) {
-  logger.info({trace_id: traceId, status: 200}, "Get ratings successfully")
+  logger.info({method: req.method, path: req.url, status: 200, trace_id: traceId}, "Get ratings successfully")
   res.writeHead(200, {'Content-type': 'application/json'})
   res.end(JSON.stringify(getLocalReviews(productId)))
 }
@@ -301,10 +301,6 @@ function handleRequest (req, res) {
   var traceId = getTraceId(req.headers)
 
   try {
-    // ヘルスチェックはロギングしない
-    if (req.url != '/health') {
-      logger.info({trace_id: traceId}, req.method + ' ' + req.url)
-    }
     dispatcher.dispatch(req, res)
   } catch (err) {
     if (req.url != '/health') {
