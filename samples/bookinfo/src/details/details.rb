@@ -56,6 +56,7 @@ end
 server.mount_proc '/details' do |req, res|
     pathParts = req.path.split('/')
     headers = get_forward_headers(req)
+    trace_id = get_trace_id(headers)
 
     begin
         begin
@@ -64,11 +65,11 @@ server.mount_proc '/details' do |req, res|
           raise 'please provide numeric product id'
         end
         details = get_book_details(id, headers)
-        logger.info("Get book details successfully", trace_id: get_trace_id(headers))
         res.body = details.to_json
+        logger.info("Get book details successfully", status: res.status, trace_id: trace_id)
         res['Content-Type'] = 'application/json'
     rescue => error
-        logger.error("#{error.message}", trace_id: get_trace_id(headers))
+        logger.error("Failed to get book details: #{error.message}", trace_id: trace_id)
         res.body = {'error' => error.message}.to_json
         res['Content-Type'] = 'application/json'
         res.status = 500
