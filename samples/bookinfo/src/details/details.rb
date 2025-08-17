@@ -25,20 +25,20 @@ $stdout.sync = true
 SemanticLogger.add_appender(
   io: $stdout,
   formatter: -> log, logger {
-    record = SemanticLogger::Formatters::Json.new.call(log, logger)
-
-    # 不要なログフィールドを削除する
-    record.delete(:level_index)
-    record.delete(:name)
-    record.delete(:pid)
-    record.delete(:thread)
+    # 必要なフィールドのみを設定する
+    record = {
+      # タイムスタンプの形式を変更する
+      "timestamp" => log.time.utc.iso8601(6),  
+      "level"     => log.level,
+      "message"   => log.message,
+    }
 
     # payloadフィールドを展開する
-    if (payload = record.delete(:payload)).is_a?(Hash)
-      record.merge!(payload)
+    if log.payload.is_a?(Hash)
+      record.merge!(log.payload.transform_keys!(&:to_s))
     end
 
-    JSON.generate(record)
+    JSON.generate(record) << "\n"
   }
 )
 
