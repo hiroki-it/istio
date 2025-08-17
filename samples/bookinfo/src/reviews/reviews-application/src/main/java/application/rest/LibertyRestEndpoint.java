@@ -165,7 +165,7 @@ public class LibertyRestEndpoint extends Application {
 
     @GET
     @Path("/reviews/{productId}")
-    public Response bookReviewsById(@PathParam("productId") int productId, @Context HttpHeaders requestHeaders, @Context HttpServletRequest request) {
+    public Response bookReviewsById(@PathParam("productId") int productId, @Context HttpHeaders requestHeaders) {
         int starsReviewer1 = -1;
         int starsReviewer2 = -1;
 
