@@ -83,7 +83,8 @@ server.mount_proc '/details' do |req, res|
         rescue
           raise 'please provide numeric product id'
         end
-        details = get_book_details(id, headers)
+        status_code, details = get_book_details(id, headers)
+        res.status = status_code
         res.body = details.to_json
         res['Content-Type'] = 'application/json'
     rescue => error
@@ -103,7 +104,9 @@ def get_book_details(id, headers)
         return fetch_details_from_external_service(isbn, id, headers)
     end
 
-    return {
+    return [
+      200,
+      {
         'id' => id,
         'author': 'William Shakespeare',
         'year': 1595,
@@ -113,23 +116,22 @@ def get_book_details(id, headers)
         'language' => 'English',
         'ISBN-10' => '1234567890',
         'ISBN-13' => '123-1234567890'
-    }
+    }]
 end
 
 def fetch_details_from_external_service(isbn, id, headers)
-    uri = URI.parse('https://www.googleapis.com/books/v1/volumes?q=isbn:' + isbn)
-    http = Net::HTTP.new(uri.host, ENV['DO_NOT_ENCRYPT'] === 'true' ? 80:443)
-    http.read_timeout = 5 # seconds
-
     # DO_NOT_ENCRYPT is used to configure the details service to use either
     # HTTP (true) or HTTPS (false, default) when calling the external service to
     # retrieve the book information.
     #
     # Unless this environment variable is set to true, the app will use TLS (HTTPS)
     # to access external services.
-    unless ENV['DO_NOT_ENCRYPT'] === 'true' then
-      http.use_ssl = true
-    end
+    scheme = ENV['DO_NOT_ENCRYPT'] === 'true' ? 'http' : 'https'
+    
+    uri = URI.parse("#{scheme}://www.googleapis.com/books/v1/volumes?q=isbn:#{isbn}")
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.read_timeout = 5 # seconds
+    http.use_ssl = (uri.scheme == 'https')
 
     request = Net::HTTP::Get.new(uri.request_uri)
     headers.each { |header, value| request[header] = value }
@@ -140,7 +142,7 @@ def fetch_details_from_external_service(isbn, id, headers)
       status_code = response.code.to_i
     rescue => error
       logger.error("Failed to get book details: #{error.message}", trace_id: trace_id)
-      return {}
+      return [500, {'error': 'Failed to get book details from external service'}]
     end
     
     if status_code >= 200 && status_code < 300
@@ -151,7 +153,7 @@ def fetch_details_from_external_service(isbn, id, headers)
       isbn10 = get_isbn(book, 'ISBN_10')
       isbn13 = get_isbn(book, 'ISBN_13')
       logger.info("Get book details successfully", method: request.method, path: request.path, status_code: status_code, trace_id: trace_id)
-      return {
+      return [status_code, {
         'id' => id,
         'author': book['authors'][0],
         'year': book['publishedDate'],
@@ -161,16 +163,16 @@ def fetch_details_from_external_service(isbn, id, headers)
         'language' => language,
         'ISBN-10' => isbn10,
         'ISBN-13' => isbn13
-      }
+      }]
     elsif status_code == 404
       logger.info("Book details is not found", method: request.method, path: request.path, status_code: status_code, trace_id: trace_id)
-      return {}
+      return [status_code, {'error': 'Book details not found' }]
     elsif status_code >= 500
       logger.error("Failed to get book details", method: request.method, path: request.path, status_code: status_code, trace_id: trace_id)
-      return {}
+      return [status_code, {'error': 'Failed to get book details from external service' }]
     else
-      logger.error("Failed to get book details", method: request.method, path: request.path, status_code: status_code, trace_id: trace_id)
-      return {}
+      logger.warn("Failed to get book details", method: request.method, path: request.path, status_code: status_code, trace_id: trace_id)
+      return [status_code, {'error': 'Failed to get book details' }]
     end
 end
 
