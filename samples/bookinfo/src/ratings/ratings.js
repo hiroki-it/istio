@@ -132,7 +132,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
           }
           connection.query('SELECT Rating FROM ratings', function (err, results, fields) {
               if (err) {
-                  logger.error({method: 'GET', path: req.url, status_code: 500, trace_id: traceId}, "Failed to perform select: " + err)
+                  logger.error({method: 'GET', path: req.url, response_code: 500, trace_id: traceId}, "Failed to perform select: " + err)
                   res.writeHead(500, {'Content-type': 'application/json'})
                   res.end(JSON.stringify({error: 'could not perform select'}))
               } else {
@@ -149,7 +149,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
                           Reviewer2: secondRating
                       }
                   }
-                  logger.info({method: 'GET', path: req.url, status_code: 200, trace_id: traceId}, "Get ratings successfully")
+                  logger.info({method: 'GET', path: req.url, response_code: 200, trace_id: traceId}, "Get ratings successfully")
                   res.writeHead(200, {'Content-type': 'application/json'})
                   res.end(JSON.stringify(result))
               }
@@ -167,7 +167,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
           const db = client.db("test")
           db.collection('ratings').find({}).toArray(function (err, data) {
             if (err) {
-              logger.error({method: 'GET', path: req.url, status_code: 500, trace_id: traceId}, "Failed to load ratings from database: " + err)
+              logger.error({method: 'GET', path: req.url, response_code: 500, trace_id: traceId}, "Failed to load ratings from database: " + err)
               res.writeHead(500, {'Content-type': 'application/json'})
               res.end(JSON.stringify({error: 'could not load ratings from database'}))
             } else {
@@ -184,7 +184,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
                   Reviewer2: secondRating
                 }
               }
-              logger.info({method: 'GET', path: req.url, status_code: 200, trace_id: traceId}, "Get ratings successfully")
+              logger.info({method: 'GET', path: req.url, response_code: 200, trace_id: traceId}, "Get ratings successfully")
               res.writeHead(200, {'Content-type': 'application/json'})
               res.end(JSON.stringify(result))
             }

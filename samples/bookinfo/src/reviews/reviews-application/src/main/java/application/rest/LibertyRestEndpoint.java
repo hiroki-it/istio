@@ -107,7 +107,7 @@ public class LibertyRestEndpoint extends Application {
         "jwt",
     };
 
-    private String getJsonResponse(String productId, int starsReviewer1, int starsReviewer2, int statusCode) {
+    private String getJsonResponse(String productId, int starsReviewer1, int starsReviewer2, int responseCode) {
     	String result = "{";
     	result += "\"id\": \"" + productId + "\",";
       result += "\"podname\": \"" + pod_hostname + "\",";
@@ -124,7 +124,7 @@ public class LibertyRestEndpoint extends Application {
         }
         // フォールバック
         // ratingsサービスの503または504ステータスコードは信頼性パターンの発動が理由のため、時間の経過で解決することを伝えるメッセージとする
-        else if (statusCode == 503 || statusCode == 504) {
+        else if (responseCode == 503 || responseCode == 504) {
           result += ", \"rating\": {\"error\": \"Sorry, product ratings are currently temporarily unavailable. Please try again later.\"}";
         }
         else {
@@ -143,7 +143,7 @@ public class LibertyRestEndpoint extends Application {
         }
         // フォールバック
         // ratingsサービスの503または504ステータスコードは信頼性パターンの発動が理由のため、時間の経過で解決することを伝えるメッセージとするーなどが理由のため、レーティング機能が時間の経過で解決することを伝えるメッセージとする
-        else if (statusCode == 503 || statusCode == 504) {
+        else if (responseCode == 503 || responseCode == 504) {
           result += ", \"rating\": {\"error\": \"Sorry, product ratings are currently temporarily unavailable. Please try again later.\"}";
         }
         else {
@@ -193,9 +193,9 @@ public class LibertyRestEndpoint extends Application {
             try {
                 Response r = builder.get();
 
-                int statusCode = r.getStatusInfo().getStatusCode();
+                int responseCode = r.getStatusInfo().getStatusCode();
 
-                if (statusCode == Response.Status.OK.getStatusCode()) {
+                if (responseCode == Response.Status.OK.getStatusCode()) {
                     try (StringReader stringReader = new StringReader(r.readEntity(String.class));
                         JsonReader jsonReader = Json.createReader(stringReader)) {
                         JsonObject ratingsResponse = jsonReader.readObject();
@@ -210,8 +210,8 @@ public class LibertyRestEndpoint extends Application {
                                 }
                             }
                         }
-                        String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
-                        MDC.put("status_code", String.valueOf(statusCode));
+                        String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, responseCode);
+                        MDC.put("response_code", String.valueOf(responseCode));
                         MDC.put("method", "GET");
                         MDC.put("path", url);
                         logger.info("Get ratings successfully");
@@ -222,7 +222,7 @@ public class LibertyRestEndpoint extends Application {
                 // コネクションプールの状態を表すヘッダーをレスポンスから取得する
                 // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
                 String isConnectionPoolOverflow = r.getHeaderString("x-envoy-overloaded");
-                MDC.put("status_code", String.valueOf(statusCode));
+                MDC.put("response_code", String.valueOf(responseCode));
                 MDC.put("method", "GET");
                 MDC.put("path", url);
                 // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている
@@ -230,8 +230,8 @@ public class LibertyRestEndpoint extends Application {
                     logger.info("Connection pool is overflowing");
                 }
                 logger.error("Failed to get ratings");
-                String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
-                return Response.status(statusCode).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
+                String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, responseCode);
+                return Response.status(responseCode).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
             
             } catch (ProcessingException e) {
                 logger.error("Failed to get ratings: " + e.getMessage());
