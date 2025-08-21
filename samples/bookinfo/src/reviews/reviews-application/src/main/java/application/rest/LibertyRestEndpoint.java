@@ -211,7 +211,7 @@ public class LibertyRestEndpoint extends Application {
                             }
                         }
                         String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, statusCode);
-                        MDC.put("status", String.valueOf(statusCode));
+                        MDC.put("status_code", String.valueOf(statusCode));
                         MDC.put("method", "GET");
                         MDC.put("path", url);
                         logger.info("Get ratings successfully");
@@ -222,7 +222,7 @@ public class LibertyRestEndpoint extends Application {
                 // コネクションプールの状態を表すヘッダーをレスポンスから取得する
                 // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
                 String isConnectionPoolOverflow = r.getHeaderString("x-envoy-overloaded");
-                MDC.put("status", String.valueOf(statusCode));
+                MDC.put("status_code", String.valueOf(statusCode));
                 MDC.put("method", "GET");
                 MDC.put("path", url);
                 // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている

@@ -150,7 +150,7 @@ def fetch_details_from_external_service(isbn, id, headers)
       type = book['printType'] === 'BOOK'? 'paperback' : 'unknown'
       isbn10 = get_isbn(book, 'ISBN_10')
       isbn13 = get_isbn(book, 'ISBN_13')
-      logger.info("Get book details successfully", method: request.method, path: request.path, status: status_code, trace_id: trace_id)
+      logger.info("Get book details successfully", method: request.method, path: request.path, status_code: status_code, trace_id: trace_id)
       return {
         'id' => id,
         'author': book['authors'][0],
@@ -163,13 +163,13 @@ def fetch_details_from_external_service(isbn, id, headers)
         'ISBN-13' => isbn13
       }
     elsif status_code == 404
-      logger.info("Book details is not found", method: request.method, path: request.path, status: status_code, trace_id: trace_id)
+      logger.info("Book details is not found", method: request.method, path: request.path, status_code: status_code, trace_id: trace_id)
       return {}
     elsif status_code >= 500
-      logger.error("Failed to get book details", method: request.method, path: request.path, status: status_code, trace_id: trace_id)
+      logger.error("Failed to get book details", method: request.method, path: request.path, status_code: status_code, trace_id: trace_id)
       return {}
     else
-      logger.error("Failed to get book details", method: request.method, path: request.path, status: status_code, trace_id: trace_id)
+      logger.error("Failed to get book details", method: request.method, path: request.path, status_code: status_code, trace_id: trace_id)
       return {}
     end
 end
