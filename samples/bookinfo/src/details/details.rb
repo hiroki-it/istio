@@ -28,7 +28,7 @@ SemanticLogger.add_appender(
     # 必要なフィールドのみを設定する
     record = {
       # タイムスタンプの形式を変更する
-      "timestamp" => log.time.utc.iso8601(6),  
+      "timestamp" => log.time.utc.iso8601(6),
       "level"     => log.level,
       "message"   => log.message,
     }
@@ -42,7 +42,7 @@ SemanticLogger.add_appender(
   }
 )
 
-logger = SemanticLogger['Details']
+$logger = SemanticLogger['Details']
 
 if ARGV.length < 1 then
     puts "usage: #{$PROGRAM_NAME} port"
@@ -51,18 +51,18 @@ end
 
 port = Integer(ARGV[0])
 
-logger.info("Start at port #{port}")
+$logger.info("Start at port #{port}")
 
 server = WEBrick::HTTPServer.new(
     :BindAddress => '*',
     :Port => port,
     :AcceptCallback => -> (s) { s.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1) },
-    :Logger => logger,
+    :Logger => $logger,
     :AccessLog => []
 )
 
 trap 'INT' do
-  logger.info("Shutting down server")
+  $logger.info("Shutting down server")
   server.shutdown
 end
 
@@ -83,12 +83,12 @@ server.mount_proc '/details' do |req, res|
         rescue
           raise 'please provide numeric product id'
         end
-        a, details = get_book_details(id, headers)
+        response_code, details = get_book_details(id, headers)
         res.status = response_code
         res.body = details.to_json
         res['Content-Type'] = 'application/json'
     rescue => error
-        logger.error("Failed to get book details: #{error.message}", trace_id: trace_id)
+        $logger.error("Failed to get book details: #{error.message}", trace_id: trace_id)
         res.body = {'error' => error.message}.to_json
         res['Content-Type'] = 'application/json'
         res.status = 500
@@ -141,10 +141,10 @@ def fetch_details_from_external_service(isbn, id, headers)
       response = http.request(request)
       response_code = response.code.to_i
     rescue => error
-      logger.error("Failed to get book details: #{error.message}", trace_id: trace_id)
+      $logger.error("Failed to get book details: #{error.message}", trace_id: trace_id)
       return [500, {'error': 'Failed to get book details from external service'}]
     end
-    
+
     if response_code >= 200 && response_code < 300
       json = JSON.parse(response.body)
       book = json['items'][0]['volumeInfo']
@@ -152,7 +152,7 @@ def fetch_details_from_external_service(isbn, id, headers)
       type = book['printType'] === 'BOOK'? 'paperback' : 'unknown'
       isbn10 = get_isbn(book, 'ISBN_10')
       isbn13 = get_isbn(book, 'ISBN_13')
-      logger.info("Get book details successfully", method: request.method, path: request.path, response_code: response_code, trace_id: trace_id)
+      $logger.info("Get book details successfully", method: request.method, path: request.path, response_code: response_code, trace_id: trace_id)
       return [response_code, {
         'id' => id,
         'author': book['authors'][0],
@@ -165,27 +165,27 @@ def fetch_details_from_external_service(isbn, id, headers)
         'ISBN-13' => isbn13
       }]
     elsif response_code == 404
-      logger.info("Book details is not found", method: request.method, path: request.path, response_code: response_code, trace_id: trace_id)
+      $logger.info("Book details is not found", method: request.method, path: request.path, response_code: response_code, trace_id: trace_id)
       return [response_code, {'error': 'Book details not found' }]
     elsif response_code >= 500
-      logger.error("Failed to get book details", method: request.method, path: request.path, response_code: response_code, trace_id: trace_id)
+      $logger.error("Failed to get book details", method: request.method, path: request.path, response_code: response_code, trace_id: trace_id)
       return [response_code, {'error': 'Failed to get book details from external service' }]
     else
-      logger.warn("Failed to get book details", method: request.method, path: request.path, response_code: response_code, trace_id: trace_id)
+      $logger.warn("Failed to get book details", method: request.method, path: request.path, response_code: response_code, trace_id: trace_id)
       return [response_code, {'error': 'Failed to get book details' }]
     end
 end
 
 def get_isbn(book, isbn_type)
-  isbn_dentifiers = book['industryIdentifiers'].select do |identifier|
+  isbn_identifiers = book['industryIdentifiers'].select do |identifier|
     identifier['type'] === isbn_type
   end
 
-  return isbn_dentifiers[0]['identifier']
+  return isbn_identifiers[0]['identifier']
 end
 
 def get_trace_id(headers)
-  
+
   # Envoyの作成したtraceparent値を取得する
   traceparent = headers['traceparent']
 
@@ -194,7 +194,7 @@ def get_trace_id(headers)
     # traceparent: 00-<trace_id>-<span_id>-01
     parts = traceparent.split('-')
     if parts.length >= 2
-      return parts[1] 
+      return parts[1]
     end
   end
 
