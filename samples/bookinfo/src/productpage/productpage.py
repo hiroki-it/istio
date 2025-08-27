@@ -25,7 +25,6 @@ import sys
 from flask import Flask, request, session, render_template, redirect, g, url_for
 from json2html import json2html
 from opentelemetry import trace
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.propagate import set_global_textmap
 from opentelemetry.propagators.b3 import B3MultiFormat
 from opentelemetry.sdk.trace import TracerProvider
@@ -53,7 +52,7 @@ oauth.register(
 )
 
 # loguruの設定
-logger.remove() 
+logger.remove()
 logger.add(
     lambda message: print(
         json.dumps({
@@ -149,7 +148,7 @@ def getForwardHeaders(request):
     headers = {}
 
     # x-b3-*** headers can be populated using the OpenTelemetry span
-    ctx = propagator.extract(carrier={k.lower(): v for k, v in request.headers})
+    ctx = propagator.extract(carrier={k.lower(): v for k, v in request.headers.items()})
     propagator.inject(headers, ctx)
 
     # We handle other (non x-b3-***) headers manually
@@ -291,14 +290,15 @@ def logout():
 
     logger.bind(trace_id=trace_id).info("Start to logout")
 
-    try:    # Keycloakからログアウトし、productpageにリダイレクトする
+    try:
+      # Keycloakからログアウトし、productpageにリダイレクトする
       redirect_uri = (
-          "http://localhost:8080/realms/dev/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s" % 
-          (session.get('id_token', ''), 
-          url_for("front", _external=True))
-          )
-      session.clear()
+          "http://localhost:8080/realms/dev/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s" %
+          (session.get('id_token', ''),
+           url_for("front", _external=True))
+           )
       response = app.make_response(redirect(redirect_uri))
+      session.clear()
       if response and response.status_code != 302:
           logger.bind(method=request.method, path=request.path, response_code=str(response.status_code), trace_id=trace_id).error("Failed to revoke token")
           return app.make_response(redirect(url_for('front', _external=True)))
@@ -308,8 +308,9 @@ def logout():
       return response
     except BaseException as e:
       logger.bind(trace_id=trace_id).error(f"Failed to revoke tokens: {repr(e)}")
+      response = app.make_response(redirect(url_for('front', _external=True)))
       response.delete_cookie('access_token')
-      return app.make_response(redirect(url_for('front', _external=True)))
+      return response
 
 # a helper function for asyncio.gather, does not return a value
 
@@ -336,7 +337,7 @@ def floodReviews(product_id, headers):
 @app.route('/productpage')
 def front():
     product_id = 0  # TODO: replace default value
-    
+
     # LOGGED_INのフラグを有効化した場合、最初からログイン済みにする
     if os.getenv('LOGGED_IN', 'False') == 'True':
         session['user'] = 'izzy'
@@ -423,112 +424,114 @@ def getProduct(product_id):
 
 def getProductDetails(product_id, headers):
     trace_id = get_trace_id()
-
+    path = "/" + details['endpoint'] + "/" + str(product_id)
+    url = details['name'] + path
     try:
-        url = details['name'] + "/" + details['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
     except BaseException as e:
-        logger.bind(method="GET", path=url, trace_id=trace_id).error(f"Failed to get details: {repr(e)}")
+        logger.bind(method="GET", path=path, trace_id=trace_id).error(f"Failed to get details: {repr(e)}")
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='details', response_code=res.status_code).inc()
-        logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).info("Get details successfully")
+        logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).info("Get details successfully")
         return res.status_code, res.json()
     elif res is not None and res.status_code == 401:
         request_result_counter.labels(destination_app='details', response_code=res.status_code).inc()
-        logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).info("Access token is invalid")
+        logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).info("Access token is invalid")
         return res.status_code, {'error': 'Please sign in to view product details'}
     elif res is not None and res.status_code == 403:
         request_result_counter.labels(destination_app='details', response_code=res.status_code).inc()
-        logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).info("Access is denied")
+        logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).info("Access is denied")
         return res.status_code, {'error': 'Please sign in to view product details.'}
     elif res is not None and (res.status_code == 503  or res.status_code == 504):
         try:
           request_result_counter.labels(destination_app='details', response_code=res.status_code).inc()
-          logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).info("Failed to get details")
+          logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).info("Failed to get details")
           return res.status_code, res.json()
         except BaseException as e:
-          logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).error(f"Failed to get details: {repr(e)}")
+          logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).error(f"Failed to get details: {repr(e)}")
           # detailsサービスが503または504ステータスでJSONデータがない場合
           return res.status_code, {'error': 'Sorry, product details are currently unavailable.'}
     else:
         response_code = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='details', response_code=response_code).inc()
-        logger.bind(method="GET", path=url, response_code=str(response_code), trace_id=trace_id).info("Failed to get details")
+        logger.bind(method="GET", path=path, response_code=str(response_code), trace_id=trace_id).info("Failed to get details")
         return response_code, {'error': 'Sorry, product details are currently unavailable.'}
 
 
 def getProductReviews(product_id, headers):
     trace_id = get_trace_id()
-   
+    path = "/" + reviews['endpoint'] + "/" + str(product_id)
+    url = reviews['name'] + path
+
     try:
-        url = reviews['name'] + "/" + reviews['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
     except BaseException as e:
-        logger.bind(method="GET", path=url, trace_id=trace_id).error(f"Failed to get reviews: {repr(e)}")
+        logger.bind(method="GET", path=path, trace_id=trace_id).error(f"Failed to get reviews: {repr(e)}")
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='reviews', response_code=res.status_code).inc()
-        logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).info("Get reviews successfully")
+        logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).info("Get reviews successfully")
         return res.status_code, res.json()
     elif res is not None and res.status_code == 401:
         request_result_counter.labels(destination_app='reviews', response_code=res.status_code).inc()
-        logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).info("Access token is invalid")
+        logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).info("Access token is invalid")
         return res.status_code, {'error': 'Please sign in to view product reviews.'}
     elif res is not None and res.status_code == 403:
         request_result_counter.labels(destination_app='reviews', response_code=res.status_code).inc()
-        logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).info("Access is denied")
+        logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).info("Access is denied")
         return res.status_code, {'error': 'Please sign in to view product reviews.'}
     elif res is not None and (res.status_code == 503  or res.status_code == 504):
         try:
           request_result_counter.labels(destination_app='reviews', response_code=res.status_code).inc()
-          logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).info("Failed to get reviews")
+          logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).info("Failed to get reviews")
           return res.status_code, res.json()
         except BaseException as e:
-          logger.bind(method="GET", path=url, trace_id=trace_id).error(f"Failed to get reviews: {repr(e)}")
+          logger.bind(method="GET", path=path, trace_id=trace_id).error(f"Failed to get reviews: {repr(e)}")
           # reviewsサービスが503または504ステータスでJSONデータがない場合
           return res.status_code, {'error': 'Sorry, product reviews are currently unavailable.'}
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='reviews', response_code=status).inc()
-        logger.bind(method="GET", path=url, response_code=str(status), trace_id=trace_id).info("Failed to get reviews")
+        logger.bind(method="GET", path=path, response_code=str(status), trace_id=trace_id).info("Failed to get reviews")
         return status, {'error': 'Sorry, product reviews are currently unavailable.'}
 
 
 def getProductRatings(product_id, headers):
     trace_id = get_trace_id()
+    path = "/" + ratings['endpoint'] + "/" + str(product_id)
+    url = ratings['name'] + path
 
     try:
-        url = ratings['name'] + "/" + ratings['endpoint'] + "/" + str(product_id)
         res = send_request(url, headers=headers, timeout=3.0)
     except BaseException as e:
         logger.bind(trace_id=trace_id).error(f"Failed to get ratings: {repr(e)}")
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='ratings', response_code=res.status_code).inc()
-        logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).info("Get ratings successfully")
+        logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).info("Get ratings successfully")
         return res.status_code, res.json()
     elif res is not None and res.status_code == 401:
         request_result_counter.labels(destination_app='ratings', response_code=res.status_code).inc()
-        logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).info("Access token is invalid")
+        logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).info("Access token is invalid")
         return res.status_code, {'error': 'Please sign in to view product ratings.'}
     elif res is not None and res.status_code == 403:
         request_result_counter.labels(destination_app='ratings', response_code=res.status_code).inc()
-        logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).info("Access is denied")
+        logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).info("Access is denied")
         return res.status_code, {'error': 'Please sign in to view product ratings.'}
     elif res is not None and (res.status_code == 503  or res.status_code == 504):
         try:
           request_result_counter.labels(destination_app='ratings', response_code=res.status_code).inc()
-          logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).info("Failed to get ratings")
+          logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).info("Failed to get ratings")
           return res.status_code, res.json()
         except BaseException as e:
-          logger.bind(method="GET", path=url, response_code=str(res.status_code), trace_id=trace_id).error(f"Failed to get ratings: {repr(e)}")
+          logger.bind(method="GET", path=path, response_code=str(res.status_code), trace_id=trace_id).error(f"Failed to get ratings: {repr(e)}")
           # ratingsサービスが503または504ステータスでJSONデータがない場合
           return res.status_code, {'error': 'Sorry, product ratings are currently unavailable.'}
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='ratings', response_code=status).inc()
-        logger.bind(method="GET", path=url, response_code=str(status), trace_id=trace_id).info("Failed to get ratings")
+        logger.bind(method="GET", path=path, response_code=str(status), trace_id=trace_id).info("Failed to get ratings")
         return status, {'error': 'Sorry, product ratings are currently unavailable.'}
 
 
@@ -545,7 +548,7 @@ def get_trace_id():
         # traceparent: 00-<trace_id>-<span_id>-01
         parts = traceparent.split("-")
         if len(parts) >= 2:
-            return parts[1] 
+            return parts[1]
     return "unknown"
 
 class Writer(object):
