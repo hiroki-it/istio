@@ -16,7 +16,7 @@
 package application.rest;
 
 import java.io.StringReader;
-
+import java.net.URI;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
@@ -33,7 +33,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -180,8 +179,9 @@ public class LibertyRestEndpoint extends Application {
             cb.property("com.ibm.ws.jaxrs.client.connection.timeout", timeout);
             cb.property("com.ibm.ws.jaxrs.client.receive.timeout", timeout);
             Client client = cb.build();
-            String url = ratings_service + "/" + productId;
-            WebTarget ratingsTarget = client.target(url);
+            WebTarget ratingsTarget = client.target(ratings_service).path(String.valueOf(productId));
+            URI uri = ratingsTarget.getUri();
+            String path = uri.getRawPath() + (uri.getRawQuery() != null ? "?" + uri.getRawQuery() : "");
             Invocation.Builder builder = ratingsTarget.request(MediaType.APPLICATION_JSON);
             for (String header : headers_to_propagate) {
                 String value = requestHeaders.getHeaderString(header);
@@ -189,7 +189,7 @@ public class LibertyRestEndpoint extends Application {
                     builder.header(header, value);
                 }
             }
-                        
+
             try {
                 Response r = builder.get();
 
@@ -213,7 +213,7 @@ public class LibertyRestEndpoint extends Application {
                         String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, responseCode);
                         MDC.put("response_code", String.valueOf(responseCode));
                         MDC.put("method", "GET");
-                        MDC.put("path", url);
+                        MDC.put("path", path);
                         logger.info("Get ratings successfully");
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
@@ -224,7 +224,7 @@ public class LibertyRestEndpoint extends Application {
                 String isConnectionPoolOverflow = r.getHeaderString("x-envoy-overloaded");
                 MDC.put("response_code", String.valueOf(responseCode));
                 MDC.put("method", "GET");
-                MDC.put("path", url);
+                MDC.put("path", path);
                 // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている
                 if ("true".equals(isConnectionPoolOverflow)){
                     logger.info("Connection pool is overflowing");
@@ -232,7 +232,7 @@ public class LibertyRestEndpoint extends Application {
                 logger.error("Failed to get ratings");
                 String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, responseCode);
                 return Response.status(responseCode).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
-            
+
             } catch (ProcessingException e) {
                 logger.error("Failed to get ratings: " + e.getMessage());
                 // reviewsサービスの500ステータスコードは障害が理由のため、レビュー機能が利用できないこと伝えるメッセージとする
@@ -247,7 +247,7 @@ public class LibertyRestEndpoint extends Application {
     }
 
     private String getTraceId(HttpHeaders headers) {
-    
+
         // Envoyの作成したtraceparent値を取得する
         String traceparent = headers.getHeaderString("traceparent");
         if (traceparent != null) {
