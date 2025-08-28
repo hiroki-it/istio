@@ -152,7 +152,7 @@ def fetch_details_from_external_service(isbn, id, headers)
       type = book['printType'] === 'BOOK'? 'paperback' : 'unknown'
       isbn10 = get_isbn(book, 'ISBN_10')
       isbn13 = get_isbn(book, 'ISBN_13')
-      $logger.info("Get book details successfully", direction: "outbound", method: request.method, path: request.path, response_code: response_code, trace_id: trace_id)
+      $logger.info("Get book details successfully", trace_id: trace_id)
       return [response_code, {
         'id' => id,
         'author': book['authors'][0],
@@ -165,13 +165,13 @@ def fetch_details_from_external_service(isbn, id, headers)
         'ISBN-13' => isbn13
       }]
     elsif response_code == 404
-      $logger.info("Book details is not found", direction: "outbound", method: request.method, path: request.path, response_code: response_code, trace_id: trace_id)
+      $logger.info("Book details is not found", trace_id: trace_id)
       return [response_code, {'error': 'Book details not found' }]
     elsif response_code >= 500
-      $logger.error("Failed to get book details", direction: "outbound", method: request.method, path: request.path, response_code: response_code, trace_id: trace_id)
+      $logger.error("Failed to get book details", trace_id: trace_id)
       return [response_code, {'error': 'Failed to get book details from external service' }]
     else
-      $logger.warn("Failed to get book details", direction: "outbound", method: request.method, path: request.path, response_code: response_code, trace_id: trace_id)
+      $logger.warn("Failed to get book details", trace_id: trace_id)
       return [response_code, {'error': 'Failed to get book details' }]
     end
 end
