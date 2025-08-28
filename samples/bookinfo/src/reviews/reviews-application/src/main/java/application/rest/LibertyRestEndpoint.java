@@ -17,6 +17,7 @@ package application.rest;
 
 import java.io.StringReader;
 import java.net.URI;
+
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
@@ -33,9 +34,12 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+
+import com.sun.org.apache.xerces.internal.impl.dtd.models.MixedContentModel;
 
 @Path("/")
 public class LibertyRestEndpoint extends Application {
@@ -211,8 +215,9 @@ public class LibertyRestEndpoint extends Application {
                             }
                         }
                         String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, responseCode);
-                        MDC.put("response_code", String.valueOf(responseCode));
+                        MDC.put("direction", "outbound");
                         MDC.put("method", "GET");
+                        MDC.put("response_code", String.valueOf(responseCode));
                         MDC.put("path", path);
                         logger.info("Get ratings successfully");
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
@@ -222,8 +227,9 @@ public class LibertyRestEndpoint extends Application {
                 // コネクションプールの状態を表すヘッダーをレスポンスから取得する
                 // @see https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-overloaded
                 String isConnectionPoolOverflow = r.getHeaderString("x-envoy-overloaded");
-                MDC.put("response_code", String.valueOf(responseCode));
+                MDC.put("direction", "outbound");
                 MDC.put("method", "GET");
+                MDC.put("response_code", String.valueOf(responseCode));
                 MDC.put("path", path);
                 // x-envoy-overloadedヘッダーがtrueの場合、Envoyのコネクションプールでオーバーフローが起こっている
                 if ("true".equals(isConnectionPoolOverflow)){
