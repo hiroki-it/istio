@@ -21,14 +21,12 @@ let logger = pino({
   base: null, 
   // フィールド名を変更する
   messageKey: 'message',
+  timeKey: 'timestamp',
+  timestamp: pino.stdTimeFunctions.isoTime,
   formatters: {
     // ログのレベル番号を文字列に変換する
     level(label) {
       return { level: label };
-    },
-    // タイムスタンプの形式を変更する
-    timestamp() {
-      return `,"timestamp":"${new Date().toISOString()}"`;
     }
   }
 });
