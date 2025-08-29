@@ -430,11 +430,11 @@ def getProductDetails(product_id, headers):
     try:
         res = send_request(url, headers=headers, timeout=3.0)
     except BaseException as e:
-        logger.bind(trace_id=trace_id).error(f"Failed to get details: {repr(e)}")
+        logger.bind(trace_id=trace_id).error(f"Failed to fetch details: {repr(e)}")
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='details', response_code=res.status_code).inc()
-        logger.bind(trace_id=trace_id).info("Get details successfully")
+        logger.bind(trace_id=trace_id).info("Fetched details successfully")
         return res.status_code, res.json()
     elif res is not None and res.status_code == 401:
         request_result_counter.labels(destination_app='details', response_code=res.status_code).inc()
@@ -447,16 +447,16 @@ def getProductDetails(product_id, headers):
     elif res is not None and (res.status_code == 503  or res.status_code == 504):
         try:
           request_result_counter.labels(destination_app='details', response_code=res.status_code).inc()
-          logger.bind(trace_id=trace_id).info("Failed to get details")
+          logger.bind(trace_id=trace_id).info("Failed to fetch details")
           return res.status_code, res.json()
         except BaseException as e:
-          logger.bind(trace_id=trace_id).error(f"Failed to get details: {repr(e)}")
+          logger.bind(trace_id=trace_id).error(f"Failed to fetch details: {repr(e)}")
           # detailsサービスが503または504ステータスでJSONデータがない場合
           return res.status_code, {'error': 'Sorry, product details are currently unavailable.'}
     else:
         response_code = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='details', response_code=response_code).inc()
-        logger.bind(trace_id=trace_id).info("Failed to get details")
+        logger.bind(trace_id=trace_id).info("Failed to fetch details")
         return response_code, {'error': 'Sorry, product details are currently unavailable.'}
 
 
@@ -468,11 +468,11 @@ def getProductReviews(product_id, headers):
     try:
         res = send_request(url, headers=headers, timeout=3.0)
     except BaseException as e:
-        logger.bind(trace_id=trace_id).error(f"Failed to get reviews: {repr(e)}")
+        logger.bind(trace_id=trace_id).error(f"Failed to fetch reviews: {repr(e)}")
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='reviews', response_code=res.status_code).inc()
-        logger.bind(trace_id=trace_id).info("Get reviews successfully")
+        logger.bind(trace_id=trace_id).info("Fetched reviews successfully")
         return res.status_code, res.json()
     elif res is not None and res.status_code == 401:
         request_result_counter.labels(destination_app='reviews', response_code=res.status_code).inc()
@@ -485,16 +485,16 @@ def getProductReviews(product_id, headers):
     elif res is not None and (res.status_code == 503  or res.status_code == 504):
         try:
           request_result_counter.labels(destination_app='reviews', response_code=res.status_code).inc()
-          logger.bind(trace_id=trace_id).info("Failed to get reviews")
+          logger.bind(trace_id=trace_id).info("Failed to fetch reviews")
           return res.status_code, res.json()
         except BaseException as e:
-          logger.bind(trace_id=trace_id).error(f"Failed to get reviews: {repr(e)}")
+          logger.bind(trace_id=trace_id).error(f"Failed to fetch reviews: {repr(e)}")
           # reviewsサービスが503または504ステータスでJSONデータがない場合
           return res.status_code, {'error': 'Sorry, product reviews are currently unavailable.'}
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='reviews', response_code=status).inc()
-        logger.bind(trace_id=trace_id).info("Failed to get reviews")
+        logger.bind(trace_id=trace_id).info("Failed to fetch reviews")
         return status, {'error': 'Sorry, product reviews are currently unavailable.'}
 
 
@@ -506,11 +506,11 @@ def getProductRatings(product_id, headers):
     try:
         res = send_request(url, headers=headers, timeout=3.0)
     except BaseException as e:
-        logger.bind(trace_id=trace_id).error(f"Failed to get ratings: {repr(e)}")
+        logger.bind(trace_id=trace_id).error(f"Failed to fetch ratings: {repr(e)}")
         res = None
     if res and res.status_code == 200:
         request_result_counter.labels(destination_app='ratings', response_code=res.status_code).inc()
-        logger.bind(trace_id=trace_id).info("Get ratings successfully")
+        logger.bind(trace_id=trace_id).info("Fetched ratings successfully")
         return res.status_code, res.json()
     elif res is not None and res.status_code == 401:
         request_result_counter.labels(destination_app='ratings', response_code=res.status_code).inc()
@@ -523,16 +523,16 @@ def getProductRatings(product_id, headers):
     elif res is not None and (res.status_code == 503  or res.status_code == 504):
         try:
           request_result_counter.labels(destination_app='ratings', response_code=res.status_code).inc()
-          logger.bind(trace_id=trace_id).info("Failed to get ratings")
+          logger.bind(trace_id=trace_id).info("Failed to fetch ratings")
           return res.status_code, res.json()
         except BaseException as e:
-          logger.bind(trace_id=trace_id).error(f"Failed to get ratings: {repr(e)}")
+          logger.bind(trace_id=trace_id).error(f"Failed to fetch ratings: {repr(e)}")
           # ratingsサービスが503または504ステータスでJSONデータがない場合
           return res.status_code, {'error': 'Sorry, product ratings are currently unavailable.'}
     else:
         status = res.status_code if res is not None and res.status_code else 500
         request_result_counter.labels(destination_app='ratings', response_code=status).inc()
-        logger.bind(trace_id=trace_id).info("Failed to get ratings")
+        logger.bind(trace_id=trace_id).info("Failed to fetch ratings")
         return status, {'error': 'Sorry, product ratings are currently unavailable.'}
 
 

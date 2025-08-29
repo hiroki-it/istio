@@ -210,7 +210,7 @@ public class LibertyRestEndpoint extends Application {
                             }
                         }
                         String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, responseCode);
-                        logger.info("Get ratings successfully");
+                        logger.info("Fetched ratings successfully");
                         return Response.ok().type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
                     }
                 }
@@ -222,12 +222,12 @@ public class LibertyRestEndpoint extends Application {
                 if ("true".equals(isConnectionPoolOverflow)){
                     logger.info("Connection pool is overflowing");
                 }
-                logger.error("Failed to get ratings");
+                logger.error("Failed to fetch ratings");
                 String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2, responseCode);
                 return Response.status(responseCode).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
 
             } catch (ProcessingException e) {
-                logger.error("Failed to get ratings: " + e.getMessage());
+                logger.error("Failed to fetch ratings: " + e.getMessage());
                 // reviewsサービスの500ステータスコードは障害が理由のため、レビュー機能が利用できないこと伝えるメッセージとする
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"Sorry, product reviews are currently unavailable.\"}").build();
             } finally {

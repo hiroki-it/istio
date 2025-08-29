@@ -88,7 +88,7 @@ server.mount_proc '/details' do |req, res|
         res.body = details.to_json
         res['Content-Type'] = 'application/json'
     rescue => error
-        $logger.error("Failed to get book details: #{error.message}", trace_id: trace_id)
+        $logger.error("Failed to fetch data from Google APIs: #{error.message}", trace_id: trace_id)
         res.body = {'error' => error.message}.to_json
         res['Content-Type'] = 'application/json'
         res.status = 500
@@ -141,8 +141,8 @@ def fetch_details_from_external_service(isbn, id, headers)
       response = http.request(request)
       response_code = response.code.to_i
     rescue => error
-      $logger.error("Failed to get book details: #{error.message}", trace_id: trace_id)
-      return [500, {'error': 'Failed to get book details from external service'}]
+      $logger.error("Failed to connect to Google APIs: #{error.message}", trace_id: trace_id)
+      return [500, {'error': 'Failed to connect to Google APIs'}]
     end
 
     if response_code >= 200 && response_code < 300
@@ -152,7 +152,7 @@ def fetch_details_from_external_service(isbn, id, headers)
       type = book['printType'] === 'BOOK'? 'paperback' : 'unknown'
       isbn10 = get_isbn(book, 'ISBN_10')
       isbn13 = get_isbn(book, 'ISBN_13')
-      $logger.info("Get book details successfully", trace_id: trace_id)
+      $logger.info("Fetched data from Google APIs successfully", trace_id: trace_id)
       return [response_code, {
         'id' => id,
         'author': book['authors'][0],
@@ -168,11 +168,11 @@ def fetch_details_from_external_service(isbn, id, headers)
       $logger.info("Book details is not found", trace_id: trace_id)
       return [response_code, {'error': 'Book details not found' }]
     elsif response_code >= 500
-      $logger.error("Failed to get book details", trace_id: trace_id)
-      return [response_code, {'error': 'Failed to get book details from external service' }]
+      $logger.error("Failed to fetch data from Google APIs", trace_id: trace_id)
+      return [response_code, {'error': 'Failed to fetch data from Google APIs' }]
     else
-      $logger.warn("Failed to get book details", trace_id: trace_id)
-      return [response_code, {'error': 'Failed to get book details' }]
+      $logger.warn("Failed to fetch data from Google APIs", trace_id: trace_id)
+      return [response_code, {'error': 'Failed to fetch data from Google APIs' }]
     end
 end
 

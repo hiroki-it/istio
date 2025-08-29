@@ -132,9 +132,9 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
           }
           connection.query('SELECT Rating FROM ratings', function (err, results, fields) {
               if (err) {
-                  logger.error({trace_id: traceId}, "Failed to perform select: " + err)
+                  logger.error({trace_id: traceId}, "Failed to fetch data from ratings database: " + err)
                   res.writeHead(500, {'Content-type': 'application/json'})
-                  res.end(JSON.stringify({error: 'could not perform select'}))
+                  res.end(JSON.stringify({error: 'Failed to fetch data from ratings database'}))
               } else {
                   if (results[0]) {
                       firstRating = results[0].Rating
@@ -149,7 +149,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
                           Reviewer2: secondRating
                       }
                   }
-                  logger.info({trace_id: traceId}, "Get ratings successfully")
+                  logger.info({trace_id: traceId}, "Fetched data from ratings database successfully")
                   res.writeHead(200, {'Content-type': 'application/json'})
                   res.end(JSON.stringify(result))
               }
@@ -167,9 +167,9 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
           const db = client.db("test")
           db.collection('ratings').find({}).toArray(function (err, data) {
             if (err) {
-              logger.error({trace_id: traceId}, "Failed to load ratings from database: " + err)
+              logger.error({trace_id: traceId}, "Failed to fetch data from ratings database: " + err)
               res.writeHead(500, {'Content-type': 'application/json'})
-              res.end(JSON.stringify({error: 'could not load ratings from database'}))
+              res.end(JSON.stringify({error: 'could not fetch data from ratings database'}))
             } else {
               if (data[0]) {
                 firstRating = data[0].rating
@@ -184,7 +184,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
                   Reviewer2: secondRating
                 }
               }
-              logger.info({trace_id: traceId}, "Get ratings successfully")
+              logger.info({trace_id: traceId}, "Fetched data from ratings database successfully")
               res.writeHead(200, {'Content-type': 'application/json'})
               res.end(JSON.stringify(result))
             }
