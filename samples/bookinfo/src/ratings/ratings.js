@@ -21,7 +21,6 @@ let logger = pino({
   base: null, 
   // フィールド名を変更する
   messageKey: 'message',
-  timestampKey: 'timestamp',
   timestamp: pino.stdTimeFunctions.isoTime,
   formatters: {
     // ログのレベル番号を文字列に変換する
