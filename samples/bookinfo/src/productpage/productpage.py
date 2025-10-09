@@ -43,7 +43,7 @@ app = Flask(__name__)
 oauth = OAuth(app)
 oauth.register(
     name="keycloak",
-    client_id="service",
+    client_id="productpage",
     client_secret="ZQBzxI5CU36UiQmrWtDbJkY3VOX5LJRY",
     client_kwargs={"scope": "openid profile email"},
     authorize_url="http://localhost:8080/realms/bookinfo/protocol/openid-connect/auth",
