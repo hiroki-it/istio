@@ -130,7 +130,6 @@ def fetch_details_from_external_service(isbn, id, headers)
 
     uri = URI.parse("#{scheme}://www.googleapis.com/books/v1/volumes?q=isbn:#{isbn}")
     http = Net::HTTP.new(uri.host, uri.port)
-    http.read_timeout = 5 # seconds
     http.use_ssl = (uri.scheme == 'https')
 
     request = Net::HTTP::Get.new(uri.request_uri)

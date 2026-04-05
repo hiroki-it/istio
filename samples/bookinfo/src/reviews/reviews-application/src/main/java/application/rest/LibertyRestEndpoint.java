@@ -175,10 +175,6 @@ public class LibertyRestEndpoint extends Application {
 
         if (ratings_enabled) {
             ClientBuilder cb = ClientBuilder.newBuilder();
-            // Istioでもタイムアウトを実装するため、マイクロサービス側ではタイムアウト値を長くしておく
-            Integer timeout = 15000;
-            cb.property("com.ibm.ws.jaxrs.client.connection.timeout", timeout);
-            cb.property("com.ibm.ws.jaxrs.client.receive.timeout", timeout);
             Client client = cb.build();
             WebTarget ratingsTarget = client.target(ratings_service).path(String.valueOf(productId));
             Invocation.Builder builder = ratingsTarget.request(MediaType.APPLICATION_JSON);
@@ -228,8 +224,9 @@ public class LibertyRestEndpoint extends Application {
 
             } catch (ProcessingException e) {
                 logger.error("Failed to fetch ratings: " + e.getMessage());
-                // reviewsサービスの500ステータスコードは障害が理由のため、レビュー機能が利用できないこと伝えるメッセージとする
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).entity("{\"error\": \"Sorry, product reviews are currently unavailable.\"}").build();
+                String jsonResStr = getJsonResponse(Integer.toString(productId), starsReviewer1, starsReviewer2,
+                    Response.Status.GATEWAY_TIMEOUT.getStatusCode());
+                return Response.status(Response.Status.GATEWAY_TIMEOUT).type(MediaType.APPLICATION_JSON).entity(jsonResStr).build();
             } finally {
                 MDC.clear();
             }

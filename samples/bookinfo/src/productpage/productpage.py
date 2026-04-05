@@ -428,7 +428,7 @@ def getProductDetails(product_id, headers):
     path = "/" + details['endpoint'] + "/" + str(product_id)
     url = details['name'] + path
     try:
-        res = send_request(url, headers=headers, timeout=3.0)
+        res = send_request(url, headers=headers)
     except BaseException as e:
         logger.bind(trace_id=trace_id).error(f"Failed to fetch details: {repr(e)}")
         res = None
@@ -466,7 +466,7 @@ def getProductReviews(product_id, headers):
     url = reviews['name'] + path
 
     try:
-        res = send_request(url, headers=headers, timeout=3.0)
+        res = send_request(url, headers=headers)
     except BaseException as e:
         logger.bind(trace_id=trace_id).error(f"Failed to fetch reviews: {repr(e)}")
         res = None
@@ -504,7 +504,7 @@ def getProductRatings(product_id, headers):
     url = ratings['name'] + path
 
     try:
-        res = send_request(url, headers=headers, timeout=3.0)
+        res = send_request(url, headers=headers)
     except BaseException as e:
         logger.bind(trace_id=trace_id).error(f"Failed to fetch ratings: {repr(e)}")
         res = None
