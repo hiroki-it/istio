@@ -62,7 +62,7 @@ if (process.env.SERVICE_VERSION === 'v-unhealthy') {
  */
 if (process.env.SERVICE_VERSION === 'v2' || process.env.SERVICE_VERSION === 'v3') {
   if (process.env.DB_TYPE === 'mysql') {
-    var mysql = require('mysql')
+    var mysql = require('mysql2')
     var hostName = process.env.MYSQL_DB_HOST
     var portNumber = process.env.MYSQL_DB_PORT
     var username = process.env.MYSQL_DB_USER
