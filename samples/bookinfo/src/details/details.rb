@@ -128,7 +128,11 @@ def fetch_details_from_external_service(isbn, id, headers)
     # to access external services.
     scheme = ENV['DO_NOT_ENCRYPT'] === 'true' ? 'http' : 'https'
 
-    uri = URI.parse("#{scheme}://www.googleapis.com/books/v1/volumes?q=isbn:#{isbn}")
+    query = { 'q' => "isbn:#{isbn}" }
+    api_key = ENV['GOOGLE_BOOKS_API_KEY']
+    query['key'] = api_key unless api_key.nil? || api_key.empty?
+
+    uri = URI.parse("#{scheme}://www.googleapis.com/books/v1/volumes?#{URI.encode_www_form(query)}")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = (uri.scheme == 'https')
 
